@@ -1,0 +1,389 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+
+class SettingController extends Controller
+{
+    /**
+     * Display the settings form.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function system()
+    {
+        $defaultConnection = config('database.default');
+        $connectionConfig = config("database.connections.{$defaultConnection}");
+        return view('admin.settings.system', [
+            'serverSoftware' => $_SERVER['SERVER_SOFTWARE'] ?? 'N/A',
+            'serverOs' => php_uname('s') . ' ' . php_uname('r'),
+            'phpVersion' => PHP_VERSION,
+            'phpSapi' => php_sapi_name(),
+            'phpMemoryLimit' => ini_get('memory_limit'),
+            'phpMaxExecutionTime' => ini_get('max_execution_time') . ' seconds',
+            'phpPostMaxSize' => ini_get('post_max_size'),
+            'phpUploadMaxFilesize' => ini_get('upload_max_filesize'),
+            'laravelVersion' => app()->version(),
+            'databaseConnection' => $defaultConnection,
+            'databaseInfo' => [
+                'name' => $connectionConfig['database'] ?? 'N/A',
+                'username' => $connectionConfig['username'] ?? 'N/A',
+                'host' => $connectionConfig['host'] ?? 'N/A',
+                'port' => $connectionConfig['port'] ?? 'N/A',
+            ],
+            'serverInfo' => [
+                'ip' => request()->server('SERVER_ADDR'),
+                'protocol' => request()->server('SERVER_PROTOCOL'),
+                'httpHost' => request()->server('HTTP_HOST'),
+                'serverName' => request()->server('SERVER_NAME'),
+                'serverPort' => request()->server('SERVER_PORT'),
+                'documentRoot' => request()->server('DOCUMENT_ROOT'),
+            ],
+            'storagePath' => storage_path(),
+            'storageWritable' => is_writable(storage_path()),
+            'bootstrapCacheWritable' => is_writable(base_path('bootstrap/cache')),
+            'storageLinkExists' => file_exists(public_path('storage'))
+        ]);
+    }
+
+    /**
+     * Display the email settings page.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function email()
+    {
+        return view('admin.settings.email', [
+            'mailDriver' => config('mail.driver'),
+            'mailHost' => config('mail.host'),
+            'mailPort' => config('mail.port'),
+            'mailUsername' => config('mail.username'),
+            'mailEncryption' => config('mail.encryption'),
+            'mailFromAddress' => config('mail.from.address'),
+            'mailFromName' => config('mail.from.name'),
+            'mailgunDomain' => config('services.mailgun.domain'),
+            'mailgunSecret' => config('services.mailgun.secret'),
+            'mailgunEndpoint' => config('services.mailgun.endpoint'),
+            'sesKey' => config('services.ses.key'),
+            'sesSecret' => config('services.ses.secret'),
+            'sesRegion' => config('services.ses.region'),
+            'mailers' => [
+                'smtp' => 'SMTP',
+                'mail' => 'PHP Mail',
+                'sendmail' => 'Sendmail',
+                'mailgun' => 'Mailgun',
+                'ses' => 'Amazon SES',
+                'log' => 'Log',
+                'array' => 'Array',
+            ],
+            'encryptionTypes' => [
+                'tls' => 'TLS',
+                'ssl' => 'SSL',
+                'null' => 'None',
+            ]
+        ]);
+    }
+
+    public function updateEmail(Request $request)
+{
+    $validated = $request->validate([
+        'mail_driver' => ['required', 'string', 'in:smtp,sendmail,mailgun,ses,mail,log,array'],
+        'mail_host' => ['required_if:mail_driver,smtp', 'nullable', 'string', 'max:255'],
+        'mail_port' => ['required_if:mail_driver,smtp', 'nullable', 'integer', 'min:1', 'max:65535'],
+        'mail_username' => ['nullable', 'string', 'max:255'],
+        'mail_password' => ['nullable', 'string', 'max:255'],
+        'mail_encryption' => ['nullable', 'string', 'in:tls,ssl,null'],
+        'mail_from_address' => ['required', 'string', 'email', 'max:255'],
+        'mail_from_name' => ['required', 'string', 'max:255'],
+        'mailgun_domain' => ['required_if:mail_driver,mailgun', 'nullable', 'string', 'max:255'],
+        'mailgun_secret' => ['required_if:mail_driver,mailgun', 'nullable', 'string', 'max:255'],
+        'mailgun_endpoint' => ['required_if:mail_driver,mailgun', 'nullable', 'string', 'max:255'],
+        'ses_key' => ['required_if:mail_driver,ses', 'nullable', 'string', 'max:255'],
+        'ses_secret' => ['required_if:mail_driver,ses', 'nullable', 'string', 'max:255'],
+        'ses_region' => ['required_if:mail_driver,ses', 'nullable', 'string', 'max:255'],
+    ]);
+
+    try {
+        // Update mail settings
+        \App\Models\Setting::set('mail.mailer', $validated['mail_driver']);
+        \App\Models\Setting::set('mail.from.address', $validated['mail_from_address']);
+        \App\Models\Setting::set('mail.from.name', $validated['mail_from_name']);
+
+        if ($validated['mail_driver'] === 'smtp') {
+            \App\Models\Setting::set('mail.host', $validated['mail_host']);
+            \App\Models\Setting::set('mail.port', $validated['mail_port']);
+            \App\Models\Setting::set('mail.username', $validated['mail_username']);
+            
+            if (!empty($validated['mail_password']) && $validated['mail_password'] !== '••••••••') {
+                \App\Models\Setting::set('mail.password', $validated['mail_password']);
+            }
+            
+            \App\Models\Setting::set('mail.encryption', $validated['mail_encryption'] ?? 'tls');
+        }
+
+        if ($validated['mail_driver'] === 'mailgun') {
+            \App\Models\Setting::set('services.mailgun.domain', $validated['mailgun_domain']);
+            \App\Models\Setting::set('services.mailgun.secret', $validated['mailgun_secret']);
+            \App\Models\Setting::set('services.mailgun.endpoint', $validated['mailgun_endpoint']);
+        }
+
+        if ($validated['mail_driver'] === 'ses') {
+            \App\Models\Setting::set('services.ses.key', $validated['ses_key']);
+            \App\Models\Setting::set('services.ses.secret', $validated['ses_secret']);
+            \App\Models\Setting::set('services.ses.region', $validated['ses_region']);
+        }
+
+        return redirect()
+            ->route('admin.settings.email')
+            ->with('success', 'Email settings updated successfully!');
+
+    } catch (\Exception $e) {
+        \Log::error('Failed to update email settings: ' . $e->getMessage());
+        return redirect()
+            ->route('admin.settings.email')
+            ->with('error', 'Failed to update email settings: ' . $e->getMessage());
+    }
+
+}
+
+/**
+ * Update an environment variable in the given content.
+ *
+ * @param string $envContent
+ * @param string $key
+ * @param string $value
+ * @return string
+ */
+private function updateEnvVariable($envContent, $key, $value)
+{
+    // Escape special characters in the value
+    $escapedValue = str_replace('$', '\$', $value);
+    
+    // If the key exists, replace it
+    if (str_contains($envContent, "{$key}=")) {
+        return preg_replace(
+            "/^{$key}=.*/m",
+            "{$key}={$escapedValue}",
+            $envContent
+        );
+    }
+    
+    // Otherwise, append it
+    return $envContent . "\n{$key}={$escapedValue}";
+}
+    
+    /**
+     * Display the payment settings page.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function payment()
+    {
+        return view('admin.settings.payment', [
+            'paymentGateways' => [
+                'stripe' => 'Stripe',
+                'paypal' => 'PayPal',
+                'paymongo' => 'PayMongo',
+                'gcash' => 'GCash',
+                'bank_transfer' => 'Bank Transfer',
+            ],
+            'stripe' => [
+                'key' => config('services.stripe.key'),
+                'secret' => config('services.stripe.secret') ? '••••••••' . substr(config('services.stripe.secret'), -4) : null,
+                'webhook_secret' => config('services.stripe.webhook.secret') ? '••••••••' . substr(config('services.stripe.webhook.secret'), -4) : null,
+            ],
+            'paypal' => [
+                'client_id' => config('services.paypal.client_id'),
+                'secret' => config('services.paypal.secret') ? '••••••••' . substr(config('services.paypal.secret'), -4) : null,
+                'mode' => config('services.paypal.mode', 'sandbox'),
+            ],
+            'paymongo' => [
+                'public_key' => config('services.paymongo.public_key'),
+                'secret_key' => config('services.paymongo.secret_key') ? '••••••••' . substr(config('services.paymongo.secret_key'), -4) : null,
+            ],
+            'gcash' => [
+                'enabled' => config('services.gcash.enabled', false),
+                'merchant_id' => config('services.gcash.merchant_id'),
+                'merchant_secret' => config('services.gcash.merchant_secret') ? '••••••••' . substr(config('services.gcash.merchant_secret'), -4) : null,
+                'account_name' => config('services.gcash.account_name'),
+                'mobile_number' => config('services.gcash.mobile_number'),
+                'qr_code' => config('services.gcash.qr_code'),
+            ],
+            'bankDetails' => [
+                'bank_name' => config('services.bank.name'),
+                'account_name' => config('services.bank.account_name'),
+                'account_number' => config('services.bank.account_number'),
+                'swift_code' => config('services.bank.swift_code'),
+                'iban' => config('services.bank.iban'),
+            ],
+            'currency' => config('cashier.currency', 'PHP'),
+            'currencySymbol' => config('cashier.currency_symbol', '₱'),
+            'currencyFormat' => config('cashier.currency_format', 'left'),
+            'commissionRate' => config('services.commission.rate', 10),
+            'minimumPayout' => config('services.commission.minimum_payout', 50),
+        ]);
+    }
+
+    /**
+     * Update the payment settings.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updatePayment(Request $request)
+    {
+        $validated = $request->validate([
+            // Stripe
+            'stripe_key' => ['nullable', 'string'],
+            'stripe_secret' => ['nullable', 'string'],
+            'stripe_webhook_secret' => ['nullable', 'string'],
+            
+            // GCash
+            'gcash_account_name' => ['nullable', 'string', 'max:255'],
+            'gcash_mobile_number' => ['nullable', 'string', 'max:20'],
+            'gcash_qr_code' => ['nullable', 'string'],
+            
+            // Currency
+            'currency' => ['required', 'string', 'size:3'],
+            'currency_symbol' => ['required', 'string', 'max:5'],
+            'currency_format' => ['required', 'in:left,right'],
+            
+            // Commission
+            'commission_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'minimum_payout' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        // Update Stripe settings
+        $this->updateEnvValue('STRIPE_KEY', $validated['stripe_key'] ?? '');
+        $this->updateEnvValue('STRIPE_SECRET', $validated['stripe_secret'] ?? '');
+        $this->updateEnvValue('STRIPE_WEBHOOK_SECRET', $validated['stripe_webhook_secret'] ?? '');
+        
+        // Update GCash settings
+        $this->updateEnvValue('GCASH_ACCOUNT_NAME', $validated['gcash_account_name'] ?? '');
+        $this->updateEnvValue('GCASH_MOBILE_NUMBER', $validated['gcash_mobile_number'] ?? '');
+        $this->updateEnvValue('GCASH_QR_CODE', $validated['gcash_qr_code'] ?? '');
+        
+        // Update currency settings
+        $this->updateEnvValue('CASHIER_CURRENCY', $validated['currency']);
+        $this->updateEnvValue('CASHIER_CURRENCY_SYMBOL', $validated['currency_symbol']);
+        $this->updateEnvValue('CASHIER_CURRENCY_FORMAT', $validated['currency_format']);
+        
+        // Update commission settings
+        $this->updateEnvValue('COMMISSION_RATE', $validated['commission_rate']);
+        $this->updateEnvValue('MINIMUM_PAYOUT', $validated['minimum_payout']);
+    
+    // Clear config cache
+    \Artisan::call('config:clear');
+    \Artisan::call('config:cache');
+    
+    return redirect()
+        ->route('admin.settings.payment')
+        ->with('success', 'Payment settings updated successfully!');
+}
+
+public function index()
+{
+    return view('admin.settings.index', [
+        'settings' => [
+            'app_name' => config('app.name'),
+            'app_env' => config('app.env'),
+            'app_debug' => config('app.debug'),
+            'app_url' => config('app.url'),
+            'timezone' => config('app.timezone'),
+            'mail_from_address' => config('mail.from.address'),
+            'mail_from_name' => config('mail.from.name'),
+        ]
+    ]);
+}
+
+/**
+ * Update the application settings.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function update(Request $request)
+{
+    $validated = $request->validate([
+        'app_name' => 'required|string|max:255',
+        'app_url' => 'required|url',
+        'timezone' => 'required|timezone',
+        'mail_from_address' => 'required|email',
+        'mail_from_name' => 'required|string|max:255',
+    ]);
+
+    try {
+        // Update config values
+        config([
+            'app.name' => $validated['app_name'],
+            'app.url' => rtrim($validated['app_url'], '/'),
+            'app.timezone' => $validated['timezone'],
+            'mail.from.address' => $validated['mail_from_address'],
+            'mail.from.name' => $validated['mail_from_name'],
+        ]);
+
+        // Clear config cache
+        Artisan::call('config:clear');
+        Artisan::call('cache:clear');
+        
+        return redirect()
+            ->route('admin.settings')
+            ->with('success', 'Settings updated successfully.');
+            
+    } catch (\Exception $e) {
+        return back()
+            ->withInput()
+            ->with('error', 'Failed to update settings: ' . $e->getMessage());
+    }
+                'mail_from_address' => config('mail.from.address'),
+                'mail_from_name' => config('mail.from.name'),
+            ]
+        ]);
+    }
+
+    /**
+     * Update the application settings.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'app_name' => 'required|string|max:255',
+            'app_url' => 'required|url',
+            'timezone' => 'required|timezone',
+            'mail_from_address' => 'required|email',
+            'mail_from_name' => 'required|string|max:255',
+        ]);
+
+        try {
+            // Update config values
+            config([
+                'app.name' => $validated['app_name'],
+                'app.url' => rtrim($validated['app_url'], '/'),
+                'app.timezone' => $validated['timezone'],
+                'mail.from.address' => $validated['mail_from_address'],
+                'mail.from.name' => $validated['mail_from_name'],
+            ]);
+
+            // Clear config cache
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+            
+            return redirect()
+                ->route('admin.settings')
+                ->with('success', 'Settings updated successfully.');
+                
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to update settings: ' . $e->getMessage());
+        }
+    }
+
+    // ... rest of your controller methods ...
+}
