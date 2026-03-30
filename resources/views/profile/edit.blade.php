@@ -20,10 +20,6 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-6">{{ __('Account Settings') }}</h3>
                     
                     <div class="space-y-6">
-                        <div class="border-b border-gray-200 pb-6">
-                            @include('profile.partials.update-profile-information-form')
-                        </div>
-                        
                         <div class="pt-6">
                             @include('profile.partials.update-password-form')
                         </div>

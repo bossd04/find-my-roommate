@@ -1,0 +1,4 @@
+Set-Content -Path "file.txt" -Value "Hello world"
+"Hello world" | Set-Content -Path "file.txt"
+Value[0]: Hello world
+Value[1]:

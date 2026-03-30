@@ -97,90 +97,92 @@ function previewAvatar(event) {
 
 // Handle form submission with AJAX for real-time updates
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form[enctype="multipart/form-data"]');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default form submission
+    const avatarInput = document.getElementById('avatar');
+    if (avatarInput) {
+        // Create separate form for avatar upload
+        avatarInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
             
-            // Find the submit button
-            const submitButton = form.querySelector('button[type="submit"]') || 
-                               form.querySelector('.bg-indigo-600') || 
-                               form.querySelector('button');
-            
-            // Show loading state
-            if (submitButton) {
-                const originalText = submitButton.innerHTML;
-                submitButton.disabled = true;
-                submitButton.innerHTML = '<span class="flex items-center"><svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>';
+            // Validate file
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showNotification('Please select a valid image file (JPEG, PNG, GIF, or WebP)', 'error');
+                return;
             }
             
-            // Create FormData
-            const formData = new FormData(form);
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                showNotification('File size should not exceed 5MB', 'error');
+                return;
+            }
             
-            // AJAX submission
-            fetch(form.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Reset button
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalText;
+            // Upload avatar immediately
+            uploadAvatar(file);
+        });
+    }
+    
+    function uploadAvatar(file) {
+        const formData = new FormData();
+        formData.append('avatar', file);
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        
+        // Show loading notification
+        showNotification('Uploading avatar...', 'info');
+        
+        fetch('{{ route("profile.avatar.update") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update avatar display
+                const avatarDisplay = document.getElementById('avatar-display');
+                if (avatarDisplay) {
+                    avatarDisplay.innerHTML = `
+                        <img src="${data.avatar_url}" 
+                             alt="Updated avatar" 
+                             class="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-md">
+                    `;
                 }
                 
-                if (data.success) {
-                    // Update avatar display in real-time
-                    if (data.avatar_url) {
-                        const avatarDisplay = document.getElementById('avatar-display');
-                        if (avatarDisplay) {
-                            avatarDisplay.innerHTML = `
-                                <img src="${data.avatar_url}" 
-                                     alt="Updated avatar" 
-                                     class="w-16 h-16 rounded-full object-cover border-2 border-blue-500 shadow-md">
-                            `;
-                        }
-                        
-                        // Update file name display
-                        const uploadMessage = document.getElementById('upload-message');
-                        if (uploadMessage) {
-                            uploadMessage.innerHTML = '<span class="text-green-600">Avatar updated successfully!</span>';
-                        }
-                        
-                        // Clear preview
-                        const previewContainer = document.getElementById('preview-container');
-                        if (previewContainer) {
-                            previewContainer.innerHTML = '';
-                        }
-                        
-                        // Clear file input
-                        document.getElementById('avatar').value = '';
+                // Update file name display
+                const uploadMessage = document.getElementById('upload-message');
+                if (uploadMessage) {
+                    uploadMessage.innerHTML = '<span class="text-green-600">Avatar updated successfully!</span>';
+                }
+                
+                // Clear preview
+                const previewContainer = document.getElementById('preview-container');
+                if (previewContainer) {
+                    previewContainer.innerHTML = '';
+                }
+                
+                // Clear file input
+                document.getElementById('avatar').value = '';
+                
+                // Show success notification
+                showNotification('Avatar updated successfully!', 'success');
+                
+                // Update all avatar images on page
+                document.querySelectorAll('img[alt*="Profile"], .user-avatar, [data-user-avatar]').forEach(img => {
+                    if (img.src && img.src.includes('/storage/avatars/')) {
+                        img.src = data.avatar_url + '?t=' + Date.now();
                     }
-                    
-                    // Show success notification
-                    showNotification('Avatar updated successfully!', 'success');
-                    
-                } else {
-                    // Show error message
-                    showNotification(data.message || 'Error updating avatar', 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Upload error:', error);
-                showNotification('Network error. Please try again.', 'error');
+                });
                 
-                // Reset button
-                if (submitButton) {
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalText;
-                }
-            });
+            } else {
+                showNotification(data.message || 'Error updating avatar', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Upload error:', error);
+            showNotification('Network error. Please try again.', 'error');
         });
     }
 });

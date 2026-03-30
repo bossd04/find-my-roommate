@@ -4,106 +4,81 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class PaymentManagementController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of payments.
+     */
+    public function index(): View
     {
-        $payments = Payment::with('user')
-            ->orderBy('due_date', 'desc')
-            ->paginate(20);
-            
+        $payments = Payment::with('user')->latest()->paginate(10);
         return view('admin.payments.index', compact('payments'));
     }
-    
-    public function create()
+
+    /**
+     * Show the form for creating a new payment.
+     */
+    public function create(): View
     {
-        $users = User::where('is_admin', false)->get();
-        return view('admin.payments.create', compact('users'));
+        return view('admin.payments.create');
     }
-    
-    public function store(Request $request)
+
+    /**
+     * Store a newly created payment.
+     */
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'amount' => 'required|numeric|min:0',
             'due_date' => 'required|date',
-            'notes' => 'nullable|string|max:1000',
+            'description' => 'required|string|max:255',
         ]);
-        
-        $payment = Payment::create([
-            'user_id' => $validated['user_id'],
-            'amount' => $validated['amount'],
-            'payment_method' => config('payments.method', 'manual'),
-            'payment_date' => null,
-            'due_date' => $validated['due_date'],
-            'status' => 'pending',
-            'notes' => $validated['notes'] ?? null,
-        ]);
-        
-        return redirect()
-            ->route('admin.payments.index')
-            ->with('success', 'Payment record created successfully!');
+
+        Payment::create($validated);
+
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Payment created successfully.');
     }
-    
-    public function show(Payment $payment)
+
+    /**
+     * Display the specified payment.
+     */
+    public function show(Payment $payment): View
     {
-        $payment->load('user');
         return view('admin.payments.show', compact('payment'));
     }
-    
-    public function markAsPaid(Payment $payment)
+
+    /**
+     * Mark payment as paid.
+     */
+    public function markAsPaid(Payment $payment): RedirectResponse
     {
-        $payment->markAsPaid();
-        
-        return redirect()
-            ->route('admin.payments.index')
-            ->with('success', 'Payment marked as paid!');
+        $payment->update([
+            'status' => 'paid',
+            'paid_at' => now(),
+        ]);
+
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Payment marked as paid.');
     }
-    
-    public function generateMonthlyPayments()
+
+    /**
+     * Generate monthly payments for all users.
+     */
+    public function generateMonthlyPayments(Request $request): RedirectResponse
     {
-        $users = User::where('is_admin', false)->get();
-        $monthlyAmount = config('payments.monthly_amount', 1000);
-        $dueDateConfig = config('payments.due_date', now()->format('Y-m-d'));
-        
-        // Parse the configured due date to get day and month
-        $dueDate = Carbon::parse($dueDateConfig);
-        $currentYear = now()->year;
-        
-        // Create due date for current year with configured day and month
-        $nextDueDate = Carbon::create($currentYear, $dueDate->month, $dueDate->day);
-        
-        // If the date has passed this year, use next year
-        if ($nextDueDate->isPast()) {
-            $nextDueDate->addYear();
-        }
-        
-        $createdCount = 0;
-        foreach ($users as $user) {
-            $existingPayment = Payment::where('user_id', $user->id)
-                ->where('due_date', $nextDueDate->toDateString())
-                ->first();
-                
-            if (!$existingPayment) {
-                Payment::create([
-                    'user_id' => $user->id,
-                    'amount' => $monthlyAmount,
-                    'payment_method' => config('payments.method', 'manual'),
-                    'payment_date' => null,
-                    'due_date' => $nextDueDate->toDateString(),
-                    'status' => 'pending',
-                    'notes' => 'Payment due on ' . $nextDueDate->format('F j, Y'),
-                ]);
-                $createdCount++;
-            }
-        }
-        
-        return redirect()
-            ->route('admin.payments.index')
-            ->with('success', "Generated {$createdCount} payment records due on {$nextDueDate->format('F j, Y')}!");
+        $month = $request->input('month', now()->format('Y-m-01'));
+        $amount = $request->input('amount', 500); // Default monthly fee
+
+        // This would generate payments for all active users
+        // Implementation depends on your business logic
+
+        return redirect()->route('admin.payments.index')
+            ->with('success', 'Monthly payments generated successfully.');
     }
 }

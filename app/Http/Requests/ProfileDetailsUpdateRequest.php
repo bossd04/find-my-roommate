@@ -28,14 +28,15 @@ class ProfileDetailsUpdateRequest extends FormRequest
             'last_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $this->user()->id],
             'phone' => ['nullable', 'string', 'max:20'],
+            'location' => ['required', 'string', 'max:255'],
             'gender' => ['nullable', 'string', 'in:male,female,other,prefer_not_to_say'],
             'age' => ['required', 'integer', 'min:18', 'max:100'],
             'bio' => ['nullable', 'string', 'max:1000'],
             'avatar' => ['nullable', File::image()->max(5 * 1024 * 1024 * 1024)], // 5GB max (in KB)
             'university' => ['nullable', 'string', 'max:255'],
-            'course' => ['nullable', 'string', 'max:255'],
+            'course' => ['nullable', 'integer', 'exists:courses,id'],
             'year_level' => ['nullable', 'string', 'max:50'],
-            'department' => ['nullable', 'string', 'max:255'],
+            'department' => ['nullable', 'integer', 'exists:departments,id'],
             'cleanliness_level' => ['nullable', 'string', 'in:very_messy,somewhat_messy,average,somewhat_clean,very_clean'],
             'sleep_pattern' => ['nullable', 'string', 'in:morning_person,night_owl,flexible,irregular'],
             'study_habit' => ['nullable', 'string', 'in:intense,moderate,light'],
@@ -46,7 +47,6 @@ class ProfileDetailsUpdateRequest extends FormRequest
             'hobbies.*' => ['string', 'max:255'],
             'lifestyle_tags' => ['nullable', 'array'],
             'lifestyle_tags.*' => ['string', 'max:255'],
-            'avatar' => ['nullable', File::image()->max(5 * 1024 * 1024 * 1024)], // 5GB max (in KB)
         ];
     }
 

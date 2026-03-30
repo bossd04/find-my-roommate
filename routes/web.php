@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\DepartmentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 
@@ -25,9 +27,10 @@ Route::get('/login', function () {
     return view('auth.login');
 })->middleware('guest')->name('login');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->middleware('guest')->name('register');
+Route::get('/register', [RegisteredUserController::class, 'create'])
+    ->middleware('guest')->name('register');
+
+Route::post('/register', [RegisteredUserController::class, 'store']);
 
 // Auth Routes
 Route::middleware('auth')->group(function () {
@@ -255,11 +258,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
+    Route::patch('/profile/details', [ProfileController::class, 'updateDetails'])
+        ->name('profile.update.details')
+        ->middleware(['auth']);
 });
-
-// Authentication Routes
-require __DIR__.'/auth.php';
 
 // Admin Routes
 require __DIR__.'/admin.php';
@@ -297,6 +299,26 @@ Route::get('/community-guidelines', function () {
 Route::get('/contact', function () {
     return view('pages.contact');
 })->name('contact');
+
+Route::patch('/profile/information', [ProfileController::class, 'updateProfileInformation'])
+    ->name('profile.update.information')
+    ->middleware(['auth']);
+
+Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])
+    ->name('profile.avatar.update')
+    ->middleware(['auth']);
+
+Route::delete('/profile/avatar', [ProfileController::class, 'removeAvatar'])
+    ->name('profile.avatar.remove')
+    ->middleware(['auth']);
+
+Route::post('/profile/completion/clear', [ProfileController::class, 'clearCompletionFlag'])
+    ->name('profile.completion.clear')
+    ->middleware(['auth']);
+
+Route::get('/departments/{department}/courses', [DepartmentController::class, 'getCoursesByDepartment'])
+    ->name('departments.courses')
+    ->middleware(['auth']);
 
 Route::patch('/profile/details', [ProfileController::class, 'updateDetails'])
     ->name('profile.update.details')

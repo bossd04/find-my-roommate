@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\UserValidationController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -47,6 +48,16 @@ Route::middleware('auth')->group(function () {
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
+
+    // ID Validation Routes
+    Route::prefix('validation')->group(function () {
+        Route::get('/', [UserValidationController::class, 'index'])->name('validation.index');
+        Route::get('/create', [UserValidationController::class, 'create'])->name('validation.create');
+        Route::post('/', [UserValidationController::class, 'store'])->name('validation.store');
+        Route::get('/{validation}', [UserValidationController::class, 'show'])->name('validation.show');
+        Route::patch('/{validation}', [UserValidationController::class, 'update'])->name('validation.update');
+        Route::delete('/{validation}', [UserValidationController::class, 'destroy'])->name('validation.destroy');
+    });
 
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');

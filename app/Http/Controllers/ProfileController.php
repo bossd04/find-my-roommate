@@ -64,6 +64,136 @@ class ProfileController extends Controller
     }
 
     /**
+     * Update the user's basic profile information.
+     */
+    public function updateProfileInformation(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            $validated = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+                'phone' => ['required', 'string', 'max:20'],
+                'location' => ['required', 'string', 'max:255'],
+            ]);
+
+            $user->update($validated);
+
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Profile information updated successfully!',
+                    'user' => $user->fresh(),
+                    'debug_info' => [
+                        'user_id' => $user->id,
+                        'updated_fields' => array_keys($validated),
+                        'timestamp' => now()->toISOString()
+                    ]
+                ]);
+            }
+
+            return redirect()->route('profile.show')
+                ->with('status', 'profile-updated')
+                ->with('success', 'Profile information updated successfully!')
+                ->with('profile_just_completed', $user->isProfileComplete() && $user->isVerified());
+
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating profile information: ' . $e->getMessage(),
+                    'debug_info' => [
+                        'error' => $e->getMessage(),
+                        'user_id' => $request->user()->id,
+                        'timestamp' => now()->toISOString()
+                    ]
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Error updating profile information: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Clear profile completion session flag.
+     */
+    public function clearCompletionFlag(Request $request)
+    {
+        session()->forget('profile_just_completed');
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Update user avatar.
+     */
+    public function updateAvatar(Request $request)
+    {
+        try {
+            $request->validate([
+                'avatar' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:5120', // 5MB max
+            ]);
+
+            $user = $request->user();
+
+            // Delete old avatar if it exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            // Store new avatar
+            $file = $request->file('avatar');
+            $extension = $file->getClientOriginalExtension();
+            $filename = 'avatar_' . $user->id . '_' . time() . '.' . $extension;
+            $path = $file->storeAs('avatars', $filename, 'public');
+
+            $user->update(['avatar' => $path]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar updated successfully!',
+                'avatar_url' => asset('storage/' . $path) . '?t=' . time()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update avatar: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove user avatar.
+     */
+    public function removeAvatar(Request $request)
+    {
+        try {
+            $user = $request->user();
+
+            // Delete avatar file if it exists
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+
+            $user->update(['avatar' => null]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Avatar removed successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove avatar: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Update the user's profile details.
      */
     public function updateDetails(ProfileDetailsUpdateRequest $request)
@@ -162,15 +292,30 @@ class ProfileController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Profile updated successfully',
-                    'avatar_url' => $user->avatar ? Storage::url($user->avatar) . '?t=' . time() : null,
-                    'user' => $user->fresh()
+                    'message' => 'Profile details saved successfully! All sections updated.',
+                    'avatar_url' => $user->avatar ? asset('storage/' . $user->avatar) . '?t=' . time() : null,
+                    'user' => $user->fresh(),
+                    'debug_info' => [
+                        'user_id' => $user->id,
+                        'profile_id' => $user->profile ? $user->profile->id : null,
+                        'updated_sections' => [
+                            'personal_info' => true,
+                            'education_info' => !empty($validated['university']) && !empty($validated['department']),
+                            'lifestyle_preferences' => !empty($validated['cleanliness_level']) && !empty($validated['sleep_pattern']),
+                            'budget_info' => !empty($validated['budget_min']) && !empty($validated['budget_max']),
+                            'hobbies' => !empty($hobbies),
+                            'lifestyle_tags' => !empty($lifestyleTags)
+                        ],
+                        'profile_complete' => $user->isProfileComplete(),
+                        'timestamp' => now()->toISOString()
+                    ]
                 ]);
             }
 
             return redirect()->route('profile.show')
                 ->with('status', 'profile-updated')
-                ->with('success', 'Profile updated successfully!');
+                ->with('success', 'Profile details saved successfully! All sections updated.')
+                ->with('profile_just_completed', $user->isProfileComplete() && $user->isVerified());
 
         } catch (\Exception $e) {
             if ($request->ajax() || $request->wantsJson()) {

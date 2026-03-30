@@ -96,11 +96,11 @@
                                                             <div class="mt-1">
                                                                 <span class="font-medium">Budget:</span> 
                                                                 @if($profile->budget_min && $profile->budget_max)
-                                                                    ${{ number_format($profile->budget_min) }} - ${{ number_format($profile->budget_max) }}
+                                                                    ${{ number_format((float)$profile->budget_min, 2) }} - ${{ number_format((float)$profile->budget_max, 2) }}
                                                                 @elseif($profile->budget_min)
-                                                                    From ${{ number_format($profile->budget_min) }}
+                                                                    From ${{ number_format((float)$profile->budget_min, 2) }}
                                                                 @elseif($profile->budget_max)
-                                                                    Up to ${{ number_format($profile->budget_max) }}
+                                                                    Up to ${{ number_format((float)$profile->budget_max, 2) }}
                                                                 @endif
                                                                 / month
                                                             </div>
@@ -220,11 +220,11 @@
                                                             <div class="mt-1">
                                                                 <span class="font-medium">Budget Range:</span> 
                                                                 @if($preferences->min_budget && $preferences->max_budget)
-                                                                    ${{ number_format($preferences->min_budget) }} - ${{ number_format($preferences->max_budget) }}
+                                                                    ${{ number_format((float)$preferences->min_budget, 0) }} - ${{ number_format((float)$preferences->max_budget, 0) }}
                                                                 @elseif($preferences->min_budget)
-                                                                    From ${{ number_format($preferences->min_budget) }}
+                                                                    From ${{ number_format((float)$preferences->min_budget, 0) }}
                                                                 @elseif($preferences->max_budget)
-                                                                    Up to ${{ number_format($preferences->max_budget) }}
+                                                                    Up to ${{ number_format((float)$preferences->max_budget, 0) }}
                                                                 @endif
                                                                 / month
                                                             </div>

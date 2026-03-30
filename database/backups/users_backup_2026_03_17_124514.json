@@ -1,0 +1,33 @@
+{
+    "backup_info": {
+        "generated_at": "2026-03-17T04:45:14.078179Z",
+        "total_users": 1,
+        "backup_type": "full_user_backup"
+    },
+    "users": [
+        {
+            "id": 1,
+            "name": "Admin User",
+            "first_name": "Admin",
+            "last_name": "User",
+            "email": "admin@admin.com",
+            "phone": null,
+            "gender": null,
+            "age": null,
+            "bio": null,
+            "university": null,
+            "course": null,
+            "year_level": null,
+            "department": null,
+            "budget_min": null,
+            "budget_max": null,
+            "hobbies": null,
+            "lifestyle_tags": null,
+            "role": "admin",
+            "is_admin": true,
+            "email_verified_at": "2026-03-17T03:57:13.000000Z",
+            "created_at": "2026-03-17T03:57:13.000000Z",
+            "updated_at": "2026-03-17T03:57:13.000000Z"
+        }
+    ]
+}

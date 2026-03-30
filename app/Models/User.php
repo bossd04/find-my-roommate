@@ -6,11 +6,14 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Preference;
+use App\Models\Department;
+use App\Models\Course;
 
 class User extends Authenticatable
 {
@@ -28,6 +31,7 @@ class User extends Authenticatable
         'email',
         'password',
         'phone',
+        'location',
         'profile_photo_path',
         'avatar',
         'last_login_at',
@@ -181,7 +185,7 @@ class User extends Authenticatable
             try {
                 // Check if file exists in storage
                 if (Storage::disk('public')->exists($this->avatar)) {
-                    return Storage::disk('public')->url($this->avatar);
+                    return Storage::url($this->avatar);
                 }
             } catch (\Exception $e) {
                 \Log::error('Error accessing avatar file', [
@@ -373,6 +377,30 @@ class User extends Authenticatable
     {
         return $this->hasOne(RoommateProfile::class, 'user_id');
     }
+
+    /**
+     * Get the department the user belongs to.
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Get the course the user is taking.
+     */
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * Get the user's ID validation.
+     */
+    public function userValidation()
+    {
+        return $this->hasOne(UserValidation::class);
+    }
     
     /**
      * Get the user's preferences.
@@ -494,5 +522,65 @@ class User extends Authenticatable
             'score' => $finalScore,
             'details' => $scores
         ];
+    }
+
+    /**
+     * Check if user profile is complete.
+     */
+    public function isProfileComplete(): bool
+    {
+        // Required fields for profile completion
+        $requiredFields = [
+            'first_name',
+            'last_name', 
+            'email',
+            'phone',
+            'gender',
+            'date_of_birth',
+            'university',
+            'department',
+            'course',
+            'year_level'
+        ];
+
+        // Check if all required user fields are filled
+        foreach ($requiredFields as $field) {
+            if (empty($this->$field)) {
+                return false;
+            }
+        }
+
+        // Check if roommate profile exists and has required fields
+        if (!$this->profile) {
+            return false;
+        }
+
+        $requiredProfileFields = [
+            'cleanliness_level',
+            'sleep_pattern',
+            'study_habit',
+            'noise_tolerance'
+        ];
+
+        foreach ($requiredProfileFields as $field) {
+            if (empty($this->profile->$field)) {
+                return false;
+            }
+        }
+
+        // Check if budget is set
+        if (empty($this->budget_min) || empty($this->budget_max)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if user is verified through ID validation.
+     */
+    public function isVerified(): bool
+    {
+        return $this->userValidation && $this->userValidation->status === 'approved';
     }
 }
