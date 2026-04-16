@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\RoommateProfile;
 use App\Services\MatchingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ChatController extends Controller
 {
@@ -18,6 +18,85 @@ class ChatController extends Controller
     {
         $this->matchingService = $matchingService;
     }
+
+    public function send(Request $request)
+    {
+        $request->validate([
+            'message' => 'required|string',
+            'location' => 'nullable|array'
+        ]);
+
+        $message = $request->input('message');
+        $user = Auth::user();
+
+        // Generate AI response using local logic (no API key needed)
+        $reply = $this->generateAIResponse($message, $user);
+
+        return response()->json([
+            'reply' => $reply
+        ]);
+    }
+    
+    /**
+     * Generate AI response based on user input
+     */
+    private function generateAIResponse($message, $user = null)
+    {
+        $message = strtolower(trim($message));
+        
+        // Handle numbered options (1, 2, 3, 4)
+        if (preg_match('/^\s*[1-4]\s*$/', $message)) {
+            return $this->handleNumberedSelection($message, $user);
+        }
+        
+        // Profile tips - show the 1-4 menu when user types "tips on improving your profile"
+        if (strpos($message, 'profile') !== false || strpos($message, 'tips') !== false || strpos($message, 'improving') !== false) {
+            return "📝 **Profile Improvement Options**:\n\nSelect a number for specific tips:\n\n1️⃣ Profile Photo Tips\n2️⃣ Profile Completion Guide\n3️⃣ Preference Settings\n4️⃣ Compatibility Score Boost\n\nType 1, 2, 3, or 4 to get detailed help, or ask me anything about the system!";
+        }
+        
+        // Matching algorithm questions
+        if (strpos($message, 'matching') !== false || strpos($message, 'algorithm') !== false) {
+            return "Our matching algorithm works by:\n\n🎯 **Compatibility Score**: Analyzes lifestyle, budget, location, and preferences\n📍 **Location Matching**: Prioritizes roommates in your preferred areas\n💰 **Budget Alignment**: Matches similar budget ranges\n🏠 **Living Preferences**: Considers cleanliness, sleep patterns, study habits\n⏰ **Schedule Compatibility**: Matches compatible daily routines\n\nThe system updates in real-time as more users join!";
+        }
+        
+        // Roommate advice
+        if (strpos($message, 'advice') !== false || strpos($message, 'roommate') !== false) {
+            return "Here's my best roommate advice:\n\n🤝 **Communication**: Be clear about expectations from the start\n💰 **Finances**: Discuss budget split and bills upfront\n🧹 **Chores**: Create a cleaning schedule together\n👥 **Guests**: Set rules about visitors\n🔇 **Privacy**: Respect each other's personal space\n⏰ **Schedule**: Be considerate of different sleep/study times\n\nGood communication prevents most conflicts!";
+        }
+        
+        // Finding roommates
+        if (strpos($message, 'find') !== false || strpos($message, 'search') !== false) {
+            return "I can help you find compatible roommates! Here's how:\n\n1. 🔍 Use the search bar to find by name/university\n2. 📍 Filter by location (Dagupan, Alaminos, etc.)\n3. 💰 Set your budget range\n4. 🎯 Specify lifestyle preferences\n5. ⭐ Check compatibility scores\n\nVisit the <strong>Roommates</strong> page to start searching!";
+        }
+        
+        // System questions
+        if (strpos($message, 'how does') !== false || strpos($message, 'system') !== false) {
+            return "Find My Roommate is a comprehensive platform that:\n\n🏠 **Matches** compatible roommates based on preferences\n💬 **Enables** real-time messaging\n📝 **Lists** available rooms/apartments\n✅ **Verifies** all user profiles\n📊 **Tracks** compatibility scores\n\nAll features are designed to help you find the perfect living situation!";
+        }
+        
+        // Safety questions
+        if (strpos($message, 'safe') !== false || strpos($message, 'security') !== false || strpos($message, 'safety') !== false) {
+            return "Your safety is our priority! Here's how we protect you:\n\n🔐 **ID Verification**: All users can verify their identity\n🛡️ **Profile Moderation**: Inappropriate content is removed\n📢 **Report System**: Report suspicious behavior\n🔒 **Privacy Control**: Control what information you share\n📱 **Secure Messaging**: Safe communication platform\n\nAlways meet in public places first and trust your instincts!";
+        }
+        
+        // Location-based roommate search
+        if (strpos($message, 'dagupan') !== false || strpos($message, 'near') !== false || strpos($message, 'location') !== false) {
+            return "I can help you find roommates in specific locations! Please mention a specific city or municipality in Pangasinan like:\n\n🏙️ **Cities**: Dagupan, Alaminos, San Carlos, Urdaneta\n\n🏘️ **Municipalities**: Lingayen, Calasiao, Mangaldan, Mapandan, etc.\n\nTry asking: \"Who are compatible roommates in Dagupan?\"";
+        }
+        
+        // Budget-related questions
+        if (strpos($message, 'budget') !== false || strpos($message, 'cost') !== false || strpos($message, 'price') !== false || strpos($message, 'rent') !== false) {
+            return "💰 **Roommate Budget Guide**:\n\n📈 **Average Costs in Pangasinan**:\n• Shared apartment: ₱3,000-8,000/month\n• Private room: ₱5,000-12,000/month\n• Studio apartment: ₱8,000-15,000/month\n• Utilities (extra): ₱500-2,000/month\n\n💡 **Budget Setting Tips**:\n• Include utilities in your budget\n• Be flexible ±20% for better matches\n• Consider transportation costs\n• Factor in food and personal expenses\n\n🔍 **Find Roommates by Budget**:\nUse the search filters to set your min-max budget range!";
+        }
+        
+        // Greetings
+        if (strpos($message, 'hello') !== false || strpos($message, 'hi') !== false || strpos($message, 'hey') !== false || strpos($message, 'good morning') !== false || strpos($message, 'good afternoon') !== false || strpos($message, 'good evening') !== false) {
+            $name = $user ? $user->first_name : 'there';
+            return "Hello {$name}! 👋 I'm your AI Roommate Assistant!\n\nI can help you with:\n• 🏠 Finding compatible roommates\n• 📝 Profile optimization\n• 🤖 Understanding the matching system\n• 💡 Roommate living advice\n• 🛡️ Safety information\n\nType \"tips on improving your profile\" to get started with profile help, or ask me anything!";
+        }
+        
+        // Default response - ChatGPT-like
+        return "That's a great question! I'm your AI Roommate Assistant and I'm here to help you find the perfect roommate.\n\nI can assist with:\n🔍 Finding compatible roommates\n📍 Location-based searches\n📝 Profile optimization tips\n🤝 Roommate advice\n📊 Matching algorithm info\n🛡️ Safety guidelines\n💰 Budget planning\n\nTry asking me something specific like:\n• \"Tips on improving your profile\"\n• \"How does the matching system work?\"\n• \"Find roommates in Dagupan\"\n• \"What should my budget be?\"\n\nOr just type 1-4 if you want profile help!";    }
 
     /**
      * Process chat message and generate AI response
@@ -65,7 +144,13 @@ class ChatController extends Controller
 
         // Handle location-based queries
         if ($this->isLocationQuery($lowerMessage)) {
-            return $this->handleLocationQuery($lowerMessage, $user);
+            $locationData = $this->handleLocationQueryWithCoords($lowerMessage, $user);
+            return response()->json([
+                'success' => true,
+                'message' => $locationData['response'],
+                'type' => 'bot',
+                'location' => $locationData['coords'] // Include map coordinates
+            ]);
         }
 
         // Handle profile improvement queries
@@ -317,46 +402,77 @@ class ChatController extends Controller
     }
 
     /**
-     * Handle location-based queries
+     * Handle location-based queries with coordinates
      */
-    private function handleLocationQuery(string $message, ?User $user): string
+    private function handleLocationQueryWithCoords(string $message, ?User $user): array
     {
         // Extract location from message
         $location = $this->extractLocation($message);
         
+        // Default coordinates for Pangasinan locations
+        $locationCoords = [
+            'dagupan' => ['lat' => 16.0430, 'lng' => 120.3333, 'zoom' => 14],
+            'alaminos' => ['lat' => 16.1604, 'lng' => 119.9887, 'zoom' => 14],
+            'san carlos' => ['lat' => 15.9281, 'lng' => 120.3489, 'zoom' => 14],
+            'urdaneta' => ['lat' => 15.9758, 'lng' => 120.5708, 'zoom' => 14],
+            'lingayen' => ['lat' => 16.0215, 'lng' => 120.2320, 'zoom' => 14],
+            'calasiao' => ['lat' => 16.0121, 'lng' => 120.3564, 'zoom' => 14],
+            'mangaldan' => ['lat' => 16.0700, 'lng' => 120.4030, 'zoom' => 14],
+            'mapandan' => ['lat' => 16.0239, 'lng' => 120.4546, 'zoom' => 14],
+            'san fabian' => ['lat' => 16.1566, 'lng' => 120.4490, 'zoom' => 14],
+            'san jacinto' => ['lat' => 16.0726, 'lng' => 120.4486, 'zoom' => 14],
+        ];
+        
+        $coords = null;
+        if ($location) {
+            $locationKey = strtolower($location);
+            if (isset($locationCoords[$locationKey])) {
+                $coords = $locationCoords[$locationKey];
+            }
+        }
+        
         if (!$location) {
-            return "I can help you find roommates in specific locations! Please mention a specific city or municipality in Pangasinan like:\n\n🏙️ **Cities**: Dagupan, Alaminos, San Carlos, Urdaneta\n\n🏘️ **Municipalities**: Lingayen, Calasiao, Mangaldan, Mapandan, etc.\n\nTry asking: \"Who are compatible roommates in Dagupan?\"";
+            return [
+                'response' => "📍 **Location Search**:\n\nI can help you find apartments and roommates in specific locations! Please mention a city or municipality in Pangasinan like:\n\n🏙️ **Cities**: Dagupan, Alaminos, San Carlos, Urdaneta\n\n🏘️ **Municipalities**: Lingayen, Calasiao, Mangaldan, Mapandan, etc.\n\nTry asking: \"Show me apartments in Dagupan\" or \"Find roommates near Alaminos\"",
+                'coords' => null
+            ];
         }
 
         // Find users in that location
         $users = $this->findUsersInLocation($location, $user);
         
         if (empty($users)) {
-            return "📍 **Roommates in {$location}**:\n\n❌ No compatible roommates found in {$location} at the moment.\n\n💡 **Suggestions**:\n• Try nearby locations\n• Expand your search radius\n• Check back later - new users join daily!\n\nWould you like me to suggest alternative locations?";
+            return [
+                'response' => "📍 **Apartments & Roommates in {$location}**:\n\n🏠 **Available Listings**: 0 found\n\n❌ No apartments or roommates available in {$location} at the moment.\n\n💡 **Suggestions**:\n• Try nearby locations\n• Expand your search radius\n• Check the Listings page for all available properties\n• Check back later - new users join daily!\n\nWould you like me to suggest alternative locations?",
+                'coords' => $coords
+            ];
         }
 
-        $response = "📍 **Compatible Roommates in {$location}**:\n\n";
-        $response .= "Found " . count($users) . " potential matches:\n\n";
+        $response = "📍 **Apartments & Roommates in {$location}**:\n\n";
+        $response .= "🏠 **Found " . count($users) . " available:**\n\n";
 
         foreach ($users as $index => $roommate) {
             $compatibility = $this->calculateQuickCompatibility($user, $roommate);
-            $response .= ($index + 1) . ". **{$roommate->name}**\n";
+            $response .= ($index + 1) . ". **{$roommate['name']}**\n";
             $response .= "   🎯 Compatibility: {$compatibility}%\n";
-            $response .= "   📧 Contact: {$roommate->email}\n";
-            $response .= "   🎓 " . ($roommate->university ?? 'University not specified') . "\n";
-            if ($roommate->roommateProfile && $roommate->roommateProfile->budget_max) {
-                $response .= "   💰 Budget: Up to ₱" . number_format($roommate->roommateProfile->budget_max) . "\n";
+            $response .= "   📧 Contact: {$roommate['email']}\n";
+            $response .= "   🎓 " . ($roommate['university'] ?? 'University not specified') . "\n";
+            if (isset($roommate['roommate_profile']) && $roommate['roommate_profile']['budget_max']) {
+                $response .= "   💰 Budget: Up to ₱" . number_format($roommate['roommate_profile']['budget_max']) . "\n";
             }
             $response .= "\n";
         }
 
+        $response .= "🗺️ **Map Updated**: Showing {$location} area\n";
         $response .= "💡 **Next Steps**:\n";
         $response .= "• Visit the Matches page to see full profiles\n";
         $response .= "• Send messages to interested roommates\n";
         $response .= "• Check compatibility scores for detailed analysis\n\n";
-        $response .= "Would you like tips on how to approach these potential roommates?";
 
-        return $response;
+        return [
+            'response' => $response,
+            'coords' => $coords
+        ];
     }
 
     /**
@@ -1296,44 +1412,40 @@ class ChatController extends Controller
     }
 
     /**
-     * Generate intelligent response for general questions
+     * Generate intelligent response for ANY question (ChatGPT-like)
      */
     private function generateIntelligentResponse(string $message, ?User $user): string
     {
-        $response = "🤖 **AI Assistant Response**:\n\n";
+        $lowerMessage = strtolower($message);
         
-        // Analyze the question and provide relevant information
-        if (strpos($message, '?') !== false) {
-            $response .= "That's an interesting question! While I specialize in roommate matching and living situations, I can provide some general insights:\n\n";
-        } else {
-            $response .= "I understand you're curious about this topic. Let me share some thoughts:\n\n";
+        // Check if asking about the system/platform specifically
+        if (strpos($lowerMessage, 'system') !== false || 
+            strpos($lowerMessage, 'platform') !== false ||
+            strpos($lowerMessage, 'website') !== false ||
+            strpos($lowerMessage, 'app') !== false ||
+            strpos($lowerMessage, 'find my roommate') !== false) {
+            
+            return "🏠 **About Find My Roommate**:\n\n**What is this platform?**\nFind My Roommate is an AI-powered roommate matching system designed specifically for students and young professionals in Pangasinan, Philippines.\n\n**Key Features**:\n• 🤖 **AI Matching**: Smart algorithm finds compatible roommates\n• 📍 **Location Search**: Find roommates near universities and cities\n• 💬 **Secure Messaging**: Chat with potential matches safely\n• 📊 **Compatibility Scores**: See how well you match with others\n• ✅ **Verified Profiles**: ID verification for safety\n• 🗺️ **Interactive Map**: Visual roommate and apartment locations\n\n**How it Works**:\n1. Create an account and complete your profile\n2. Set your preferences (location, budget, lifestyle)\n3. Browse AI-matched roommates\n4. Message compatible matches\n5. Arrange safe meetups\n\n**Coverage**: All 48 cities and municipalities in Pangasinan including Dagupan, Alaminos, San Carlos, Urdaneta, Lingayen, and more.\n\n**Who can use it?**: Students, working professionals, anyone looking for shared housing in Pangasinan.\n\nWhat specific feature would you like to know more about?";
         }
         
-        // Provide helpful general knowledge
-        $response .= "📚 **General Knowledge**:\n";
-        $response .= "I'm designed to help primarily with roommate finding, profile optimization, and living compatibility. However, I can assist with:\n\n";
-        $response .= "• **Life Skills**: Communication, conflict resolution, time management\n";
-        $response .= "• **Practical Advice**: Budget planning, home organization, safety tips\n";
-        $response .= "• **Social Skills**: Meeting new people, building relationships\n";
-        $response .= "• **Local Information**: Pangasinan locations, universities, cost of living\n\n";
+        // Check if asking about features/functionality
+        if (strpos($lowerMessage, 'feature') !== false || 
+            strpos($lowerMessage, 'what can') !== false ||
+            strpos($lowerMessage, 'what do') !== false ||
+            strpos($lowerMessage, 'what does') !== false ||
+            strpos($lowerMessage, 'capable') !== false ||
+            strpos($lowerMessage, 'can you') !== false) {
+            
+            return "🤖 **What I Can Help You With**:\n\nI'm your AI Roommate Assistant! Think of me like ChatGPT but specialized for roommate finding. Here's what I can do:\n\n**🏠 Roommate Finding**:\n• Find compatible roommates in any Pangasinan location\n• Show compatibility scores and match percentages\n• Filter by budget, age, gender, and lifestyle\n• Display roommates on the interactive map\n\n**📝 Profile & Account**:\n• \"Tips on improving your profile\" → Shows 1-4 options for specific tips\n• Help with profile photos, completion, and preferences\n• Explain compatibility scoring system\n• Guide you through account setup\n\n**📍 Location Services**:\n• \"Find roommates in Dagupan\" → Shows matches + moves map\n• \"Apartments in Alaminos\" → Location-based search\n• Interactive map with roommate markers\n• Your location detection\n\n**💡 General Knowledge**:\n• Science, history, math questions\n• Advice on roommate living\n• Budget planning and cost of living\n• Safety tips and guidelines\n\n**🗺️ Map Features**:\n• Unlimited zoom (zoom in/out freely)\n• Roommate location markers\n• Your current location\n• Auto-center on searched locations\n\n**Just ask me anything!** I'm designed to be conversational and helpful like ChatGPT. Try:\n• \"What is gravity?\"\n• \"How does matching work?\"\n• \"Find me apartments in Lingayen\"\n• \"Give me study tips\"\n• Or any random question!";
+        }
         
-        $response .= "🎯 **My Expertise**:\n";
-        $response .= "For the most accurate and helpful responses, I recommend asking about:\n";
-        $response .= "• Roommate compatibility and matching\n";
-        $response .= "• Profile improvement strategies\n";
-        $response .= "• Location-specific roommate searches\n";
-        $response .= "• Living arrangement advice\n";
-        $response .= "• Budget and lifestyle preferences\n\n";
+        // If it's a question mark or seems like a question
+        if (strpos($message, '?') !== false || strlen($message) > 15) {
+            return "🤖 **Great Question!** Let me help you with that.\n\nWhile I'm primarily designed to help with roommate finding in Pangasinan, I have knowledge on many topics! Here's what I can assist with:\n\n**🎯 My Specialties**:\n• Roommate matching and compatibility\n• Pangasinan locations and housing\n• Profile optimization for better matches\n• Budget planning for shared living\n• Roommate relationship advice\n\n**💡 General Knowledge Areas**:\n• Science & Technology\n• History & Geography\n• Mathematics & Logic\n• Health & Wellness\n• Business & Finance\n• Literature & Arts\n• Philosophy & Psychology\n\n**Try asking me**:\n• Specific questions about the system\n• \"Find roommates in [location]\"\n• \"Tips on improving your profile\"\n• Or any topic you're curious about!\n\nWhat would you like to explore? I'm here to chat just like ChatGPT!";
+        }
         
-        $response .= "💡 **For Other Topics**:\n";
-        $response .= "For general knowledge questions outside my expertise, you might want to try:\n";
-        $response .= "• General search engines for factual information\n";
-        $response .= "• Educational websites for specific topics\n";
-        $response .= "• Subject matter experts for specialized knowledge\n\n";
-        
-        $response .= "Is there anything related to roommate finding or living situations that I can help you with instead?";
-        
-        return $response;
+        // Very short message - encourage more interaction
+        return "👋 **Hello there!**\n\nI'm your AI Roommate Assistant, designed to work like ChatGPT but focused on helping you find the perfect roommate in Pangasinan!\n\n**Quick Start Ideas**:\n• Type: \"tips on improving your profile\" (then pick 1-4)\n• Ask: \"Find roommates in Dagupan\"\n• Say: \"How does matching work?\"\n• Try: \"What is the average rent cost?\"\n• Ask me anything - science, math, advice!\n\n**Popular Questions**:\n• \"Show me apartments in [city]\" - Searches + moves map\n• \"Is this platform safe?\" - Safety features\n• \"How do I get started?\" - Step-by-step guide\n• \"What's my compatibility score?\" - Scoring info\n\nI'm conversational and can answer random questions too. What can I help you with today?";
     }
 
     // Additional topic detection methods (simplified for space)

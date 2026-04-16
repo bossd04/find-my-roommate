@@ -1,27 +1,50 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="flex h-[600px]">
-            <!-- Sidebar -->
-            <div class="w-1/3 border-r border-gray-200 bg-gray-50 overflow-y-auto">
-                <div class="p-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-800">Messages</h2>
-                </div>
+<div class="min-h-screen bg-cover bg-center bg-fixed" style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
+    <div class="bg-black bg-opacity-50 min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-3xl mx-auto bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-lg border border-blue-200 overflow-hidden">
+                <div class="flex h-[550px]">
+                    <!-- Sidebar -->
+                    <div class="w-1/3 border-r border-blue-200 bg-white overflow-y-auto">
+                        <div class="p-4 border-b border-blue-200 bg-blue-50">
+                            <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                                <span class="text-2xl mr-2">💬</span> Messages
+                            </h2>
+                        </div>
                 <div class="divide-y divide-gray-200">
                     @foreach($conversations as $conversation)
+                        @php $isMuted = in_array($conversation->otherUser->id, $mutedUserIds ?? []); @endphp
                         <a href="{{ route('messages.show', $conversation->otherUser->id) }}" 
-                           class="flex items-center p-4 hover:bg-gray-100 {{ $conversation->otherUser->id == $selectedUser?->id ? 'bg-blue-50' : '' }}">
+                           class="flex items-center p-4 hover:bg-gray-50 {{ $conversation->otherUser->id == $selectedUser?->id ? 'bg-blue-100 shadow-inner border-l-4 border-blue-500' : '' }} transition-all duration-200">
                             <div class="flex-shrink-0">
-                                <img class="h-10 w-10 rounded-full" 
-                                     src="{{ $conversation->otherUser->profile_photo_url }}" 
+                                <img class="h-10 w-10 rounded-full object-cover {{ $isMuted ? 'opacity-70' : '' }}" 
+                                     src="{{ $conversation->otherUser->avatar_url }}" 
                                      alt="{{ $conversation->otherUser->name }}">
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm font-medium text-gray-900">
-                                    {{ $conversation->otherUser->name }}
-                                </p>
+                                <div class="flex items-center gap-1.5">
+                                    <p class="text-sm font-medium text-gray-900 {{ $isMuted ? 'text-gray-500' : '' }}">
+                                        {{ $conversation->otherUser->name }}
+                                    </p>
+                                    @if(auth()->user()->hasBlocked($conversation->otherUser->id))
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-600 text-white">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                            </svg>
+                                            Blocked
+                                        </span>
+                                    @elseif($isMuted)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-600 text-white" title="Notifications muted">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+                                            </svg>
+                                            Muted
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="text-sm text-gray-500 truncate max-w-xs">
                                     {{ $conversation->latestMessage->content }}
                                 </p>
@@ -43,10 +66,10 @@
             <div class="flex-1 flex flex-col">
                 @if($selectedUser)
                     <!-- Chat Header -->
-                    <div class="p-4 border-b border-gray-200 flex items-center">
+                    <div class="p-4 border-b border-blue-200 bg-white flex items-center">
                         <div class="flex-shrink-0">
-                            <img class="h-10 w-10 rounded-full" 
-                                 src="{{ $selectedUser->profile_photo_url }}" 
+                            <img class="h-10 w-10 rounded-full object-cover" 
+                                 src="{{ $selectedUser->avatar_url }}" 
                                  alt="{{ $selectedUser->name }}">
                         </div>
                         <div class="ml-3">
@@ -64,7 +87,7 @@
                     </div>
 
                     <!-- Messages -->
-                    <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
                         @foreach($messages as $message)
                             <div class="flex {{ $message->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
                                 <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg {{ $message->sender_id === auth()->id() ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800' }}">
@@ -113,7 +136,16 @@
                     </div>
 
                     <!-- Message Input -->
-                    <div class="p-4 border-t border-gray-200">
+                    <div class="p-4 border-t border-blue-200 bg-white">
+                        @if(auth()->user()->hasBlocked($selectedUser->id))
+                            <div class="text-center py-2">
+                                <p class="text-sm text-gray-500">You have blocked this user. Unblock to send a message.</p>
+                            </div>
+                        @elseif(auth()->user()->isBlockedBy($selectedUser->id))
+                            <div class="text-center py-2">
+                                <p class="text-sm text-gray-500">You can't reply to this conversation.</p>
+                            </div>
+                        @else
                         <form id="message-form" action="{{ route('messages.store', $selectedUser) }}" method="POST" class="flex space-x-2">
                             @csrf
                             <input type="text" 
@@ -127,9 +159,10 @@
                                 Send
                             </button>
                         </form>
+                        @endif
                     </div>
                 @else
-                    <div class="flex items-center justify-center h-full">
+                    <div class="flex items-center justify-center h-full bg-gray-50">
                         <div class="text-center p-6">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -139,6 +172,7 @@
                         </div>
                     </div>
                 @endif
+            </div>
             </div>
         </div>
     </div>
@@ -241,47 +275,51 @@
         }
     });
 
-    // Enable pusher for real-time updates
-    window.Echo.private(`user.${@json(auth()->id())}`)
-        .listen('.message.sent', (data) => {
-            // Handle new message
-            const messagesDiv = document.getElementById('messages');
-            if (messagesDiv) {
-                const message = data.message;
-                const isSender = message.sender_id === @json(auth()->id());
-                const messageHtml = `
-                    <div class="flex ${isSender ? 'justify-end' : 'justify-start'}">
-                        <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'}">
-                            <p class="text-sm">${message.content}</p>
-                            <div class="flex items-center justify-end mt-1 space-x-1">
-                                <span class="text-xs ${isSender ? 'text-blue-200' : 'text-gray-500'}">
-                                    ${new Date(message.created_at).toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric', hour12: true})}
-                                </span>
-                                ${isSender ? `
-                                    <svg class="h-3 w-3 ${message.read_at ? 'text-blue-300' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 12.586l7.293-7.293a1 1 0 011.414 1.414l-8 8z" />
-                                    </svg>
-                                ` : ''}
+    // Enable pusher for real-time updates - only if Echo is available
+    if (typeof window.Echo !== 'undefined' && window.Echo) {
+        window.Echo.private(`user.${@json(auth()->id())}`)
+            .listen('.message.sent', (data) => {
+                // Handle new message
+                const messagesDiv = document.getElementById('messages');
+                if (messagesDiv) {
+                    const message = data.message;
+                    const isSender = message.sender_id === @json(auth()->id());
+                    const messageHtml = `
+                        <div class="flex ${isSender ? 'justify-end' : 'justify-start'}">
+                            <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${isSender ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-800'}">
+                                <p class="text-sm">${message.content}</p>
+                                <div class="flex items-center justify-end mt-1 space-x-1">
+                                    <span class="text-xs ${isSender ? 'text-blue-200' : 'text-gray-500'}">
+                                        ${new Date(message.created_at).toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric', hour12: true})}
+                                    </span>
+                                    ${isSender ? `
+                                        <svg class="h-3 w-3 ${message.read_at ? 'text-blue-300' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 12.586l7.293-7.293a1 1 0 011.414 1.414l-8 8z" />
+                                        </svg>
+                                    ` : ''}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }
-        })
-        .listen('.message.read', (data) => {
-            // Update read status of messages
-            document.querySelectorAll('.message-status').forEach(el => {
-                if (el.dataset.messageId === data.message_id.toString()) {
-                    el.innerHTML = `
-                        <svg class="h-3 w-3 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 12.586l7.293-7.293a1 1 0 011.414 1.414l-8 8z" />
-                        </svg>
                     `;
+                    messagesDiv.insertAdjacentHTML('beforeend', messageHtml);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
+            })
+            .listen('.message.read', (data) => {
+                // Update read status of messages
+                document.querySelectorAll('.message-status').forEach(el => {
+                    if (el.dataset.messageId === data.message_id.toString()) {
+                        el.innerHTML = `
+                            <svg class="h-3 w-3 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 12.586l7.293-7.293a1 1 0 011.414 1.414l-8 8z" />
+                            </svg>
+                        `;
+                    }
+                });
             });
-        });
+    } else {
+        console.log('Laravel Echo not loaded - real-time messaging disabled');
+    }
 </script>
 @endpush
 

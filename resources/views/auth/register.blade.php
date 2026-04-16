@@ -87,8 +87,8 @@
         </div>
         <div class="ml-3 text-sm">
             <label for="terms" class="font-medium text-gray-700">I agree to the</label>
-            <a href="#" class="text-indigo-600 hover:text-indigo-500"> Terms of Service </a> and 
-            <a href="#" class="text-indigo-600 hover:text-indigo-500">Privacy Policy</a>
+            <a href="{{ route('terms') }}" target="_blank" class="text-indigo-600 hover:text-indigo-500 underline"> Terms of Service </a> and 
+            <a href="{{ route('privacy') }}" target="_blank" class="text-indigo-600 hover:text-indigo-500 underline">Privacy Policy</a>
         </div>
     </div>
 

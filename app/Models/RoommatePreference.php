@@ -15,6 +15,7 @@ class RoommatePreference extends Model
     protected $fillable = [
         'user_id',
         'preferred_gender',
+        'number_of_roommates',
         'min_age',
         'max_age',
         'preferred_cleanliness',

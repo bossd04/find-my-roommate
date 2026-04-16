@@ -10,6 +10,11 @@ class AdminMiddleware
 {
     public function handle($request, Closure $next, $guard = null)
     {
+        // Don't redirect if already on login page
+        if ($request->is('admin/login')) {
+            return $next($request);
+        }
+
         if (!Auth::guard('admin')->check()) {
             return redirect()->route('admin.login');
         }
@@ -21,7 +26,8 @@ class AdminMiddleware
         }
 
         // Set the intended URL for redirecting after login
-        if (!$request->is('admin/*')) {
+        // Only redirect if not already on an admin route
+        if (!$request->is('admin*')) {
             return redirect()->route('admin.dashboard');
         }
 

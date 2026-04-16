@@ -37,17 +37,6 @@
             <div>
                 <div class="flex items-center justify-between">
                     <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                    @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 hover:text-indigo-500">
-                            Forgot your password?
-                        </a>
-                    @endif
-                    
-                    <div class="mt-4 text-center">
-                        <a href="{{ route('admin.login') }}" class="text-sm font-medium text-gray-600 hover:text-gray-500">
-                            Are you an admin? Sign in here
-                        </a>
-                    </div>
                 </div>
                 <div class="mt-1">
                     <input id="password" name="password" type="password" autocomplete="current-password" required
@@ -82,6 +71,13 @@
             Sign up
         </a>
     </p>
+    @if (Route::has('password.request'))
+    <p class="text-center text-sm text-gray-600">
+        <a href="{{ route('password.request') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
+            Forgot your password?
+        </a>
+    </p>
+    @endif
     <p class="text-center text-sm text-gray-600">
         <a href="{{ route('admin.login') }}" class="font-medium text-indigo-600 hover:text-indigo-500">
             Are you an admin? Sign in here

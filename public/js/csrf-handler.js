@@ -31,12 +31,28 @@
         // Add CSRF token to headers if it's a POST, PUT, PATCH, or DELETE request
         const method = (init.method || 'GET').toUpperCase();
         if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-            init.headers = {
-                ...init.headers,
-                'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+            const headers = init.headers || {};
+            
+            // Basic headers
+            const newHeaders = {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Content-Type': 'application/json',
                 'Accept': 'application/json, text/plain, */*'
+            };
+
+            // Add CSRF token
+            if (csrfToken) {
+                newHeaders['X-CSRF-TOKEN'] = csrfToken.content;
+            }
+
+            // ONLY set Content-Type if not already set and NOT sending FormData
+            const isFormData = init.body instanceof FormData;
+            if (!isFormData && !headers['Content-Type']) {
+                newHeaders['Content-Type'] = 'application/json';
+            }
+
+            init.headers = {
+                ...headers,
+                ...newHeaders
             };
         }
         return originalFetch(resource, init);

@@ -62,6 +62,22 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center">
+                        <!-- Logo SVG -->
+                        <svg class="w-8 h-8 mr-2" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <!-- House outline -->
+                            <path d="M20 45 L50 20 L80 45 L80 80 L20 80 Z" fill="none" stroke="#3B82F6" stroke-width="3"/>
+                            <!-- Door -->
+                            <rect x="42" y="55" width="16" height="25" fill="#3B82F6"/>
+                            <!-- Windows -->
+                            <rect x="28" y="35" width="12" height="12" fill="#3B82F6"/>
+                            <rect x="60" y="35" width="12" height="12" fill="#3B82F6"/>
+                            <!-- First person (blue) -->
+                            <circle cx="35" cy="65" r="4" fill="#3B82F6"/>
+                            <path d="M35 69 L35 75 M30 72 L40 72" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+                            <!-- Second person (orange) -->
+                            <circle cx="65" cy="65" r="4" fill="#FB923C"/>
+                            <path d="M65 69 L65 75 M60 72 L70 72" stroke="#FB923C" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
                         <span class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                             Find My Roommate
                         </span>
@@ -123,7 +139,7 @@
     <div class="hero-bg text-white py-20 md:py-32">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6">Find Your Perfect Roommate</h1>
+                <h1 class="text-4xl md:text-6xl font-bold mb-6">Find Your Roommate</h1>
                 <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">Connect with compatible roommates based on lifestyle, habits, and preferences. Your ideal living situation starts here.</p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     @if (Route::has('register'))
@@ -395,6 +411,15 @@
             </div>
             <div class="mt-8 border-t border-gray-800 pt-8 md:flex md:items-center md:justify-between">
                 <div class="flex space-x-6">
+                    @auth
+                        @if(auth()->user()->profile && auth()->user()->profile->facebook_url)
+                            <a href="{{ auth()->user()->profile->facebook_url }}" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors duration-200" title="My Facebook">
+                                <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                                </svg>
+                            </a>
+                        @endif
+                    @endauth
                     <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition-colors duration-200">
                         <span class="sr-only">Facebook</span>
                         <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">

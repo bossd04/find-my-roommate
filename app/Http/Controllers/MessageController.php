@@ -6,7 +6,9 @@ use App\Events\MessageRead;
 use App\Events\MessageSent;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Models\MutedConversation;
 use App\Models\User;
+use App\Models\UserBlock;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,66 +20,70 @@ class MessageController extends Controller
     public function index(User $user = null)
     {
         $currentUser = Auth::user();
-        
-        // Get all conversations for the current user with unread counts and latest message
-        $conversations = Message::select([
-                'messages.*',
-                DB::raw('COUNT(CASE WHEN messages.receiver_id = ' . $currentUser->id . ' AND messages.read_at IS NULL THEN 1 END) as unread_count')
-            ])
-            ->where(function($query) use ($currentUser) {
-                $query->where('sender_id', $currentUser->id)
-                      ->orWhere('receiver_id', $currentUser->id);
-            })
-            ->with(['sender', 'receiver'])
-            ->groupBy(DB::raw('CASE WHEN sender_id = ' . $currentUser->id . ' THEN receiver_id ELSE sender_id END'))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($message) use ($currentUser) {
-                $otherUser = $message->sender_id == $currentUser->id 
-                    ? $message->receiver 
-                    : $message->sender;
-                
-                return (object)[
-                    'otherUser' => $otherUser,
-                    'latestMessage' => $message,
-                    'unread_count' => $message->unread_count
-                ];
-            });
 
-        // If a user is selected, get the conversation
+        // Get all conversations for the current user
+        $conversations = $this->getConversations($currentUser);
+
+        // If there are existing conversations and no specific user is selected,
+        // redirect to the most recent conversation automatically
+        if ($conversations->isNotEmpty() && !$user) {
+            $mostRecent = $conversations->sortByDesc(function ($c) {
+                return $c->last_message?->created_at;
+            })->first();
+
+            if ($mostRecent && $mostRecent->user) {
+                return redirect()->route('messages.show', $mostRecent->user->id);
+            }
+        }
+
+        // Get conversation with a specific user (if provided)
         $selectedUser = null;
         $messages = collect();
-        
+
         if ($user) {
             $selectedUser = $user;
-            
+
             // Mark messages as read
             Message::where('sender_id', $user->id)
                 ->where('receiver_id', $currentUser->id)
                 ->whereNull('read_at')
                 ->update(['read_at' => now()]);
-                
+
             // Get messages between users
-            $messages = Message::where(function($query) use ($currentUser, $user) {
+            $messages = Message::where(function ($query) use ($currentUser, $user) {
                     $query->where('sender_id', $currentUser->id)
                           ->where('receiver_id', $user->id);
                 })
-                ->orWhere(function($query) use ($currentUser, $user) {
+                ->orWhere(function ($query) use ($currentUser, $user) {
                     $query->where('sender_id', $user->id)
                           ->where('receiver_id', $currentUser->id);
                 })
                 ->with(['sender', 'receiver'])
                 ->orderBy('created_at', 'asc')
                 ->get();
-                
-            // Broadcast read event
-            broadcast(new MessageRead($currentUser, $user));
         }
+
+        // Build a set of muted user IDs so the sidebar can show mute indicators
+        $mutedUserIds = MutedConversation::where('user_id', $currentUser->id)
+            ->active()
+            ->with('conversation')
+            ->get()
+            ->map(function ($mute) use ($currentUser) {
+                $conv = $mute->conversation;
+                if (!$conv) return null;
+                return $conv->user1_id == $currentUser->id
+                    ? $conv->user2_id
+                    : $conv->user1_id;
+            })
+            ->filter()
+            ->values()
+            ->toArray();
 
         return view('messages.chat', [
             'conversations' => $conversations,
-            'selectedUser' => $selectedUser,
-            'messages' => $messages
+            'selectedUser'  => $selectedUser,
+            'messages'      => $messages,
+            'mutedUserIds'  => $mutedUserIds,
         ]);
     }
     
@@ -86,7 +92,8 @@ class MessageController extends Controller
     {
         if ($message->receiver_id === Auth::id() && !$message->read_at) {
             $message->update(['read_at' => now()]);
-            broadcast(new MessageRead(Auth::user(), $message->sender));
+            // Note: Broadcasting disabled to fix helper errors
+            // broadcast(new MessageRead(Auth::user(), $message->sender));
         }
         
         return response()->json(['status' => 'Message marked as read']);
@@ -96,9 +103,9 @@ class MessageController extends Controller
     {
         $currentUser = Auth::user();
         
-        // Ensure users can only message other users (not admins)
-        if ($user->is_admin || $currentUser->is_admin) {
-            abort(403, 'Admin messaging is not allowed.');
+        // Allow users to message admins, but block admin-to-admin messaging
+        if ($user->is_admin && $currentUser->is_admin) {
+            abort(403, 'Admin-to-admin messaging is not allowed.');
         }
 
         // Mark messages as read
@@ -126,12 +133,29 @@ class MessageController extends Controller
         // Calculate compatibility percentage (example: based on preferences)
         $compatibility = $this->calculateCompatibility($currentUser, $user);
 
+        // Build a set of muted user IDs so the sidebar can show mute indicators
+        $mutedUserIds = MutedConversation::where('user_id', $currentUser->id)
+            ->active()
+            ->with('conversation')
+            ->get()
+            ->map(function ($mute) use ($currentUser) {
+                $conv = $mute->conversation;
+                if (!$conv) return null;
+                return $conv->user1_id == $currentUser->id
+                    ? $conv->user2_id
+                    : $conv->user1_id;
+            })
+            ->filter()
+            ->values()
+            ->toArray();
+
         return view('messages.show', [
-            'messages' => $messages,
+            'messages'      => $messages,
             'conversations' => $conversations,
-            'receiver' => $user,
+            'receiver'      => $user,
             'compatibility' => $compatibility,
-            'currentUser' => $currentUser
+            'currentUser'   => $currentUser,
+            'mutedUserIds'  => $mutedUserIds,
         ]);
     }
     
@@ -188,16 +212,39 @@ class MessageController extends Controller
     public function store(User $user, Request $request)
     {
         $currentUser = Auth::user();
-        
-        // Ensure users can only message other users (not admins)
-        if ($user->is_admin || $currentUser->is_admin) {
+
+        // Check if there is a block between users
+        // If current user is blocked by the recipient, prevent sending
+        // If current user has blocked recipient, prevent sending (must unblock first)
+        if ($currentUser->isBlockedBy($user->id)) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Admin messaging is not allowed.'
+                    'message' => 'You cannot reply to this conversation. You have been blocked.'
                 ], 403);
             }
-            return back()->with('error', 'Admin messaging is not allowed.');
+            return back()->with('error', 'You cannot reply to this conversation. You have been blocked.');
+        }
+
+        if ($currentUser->hasBlocked($user->id)) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You cannot reply to this conversation. You have blocked this user. Unblock them to continue chatting.'
+                ], 403);
+            }
+            return back()->with('error', 'You cannot reply to this conversation. You have blocked this user. Unblock them to continue chatting.');
+        }
+
+        // Allow users to message admins, but block admin-to-admin messaging
+        if ($user->is_admin && $currentUser->is_admin) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Admin-to-admin messaging is not allowed.'
+                ], 403);
+            }
+            return back()->with('error', 'Admin-to-admin messaging is not allowed.');
         }
 
         $validated = $request->validate([
@@ -224,6 +271,32 @@ class MessageController extends Controller
             
             // Associate with conversation
             $message->conversation()->associate($conversation);
+            
+            // Check for bad words/violations
+            $content = strtolower($validated['message']);
+            $badWords = [
+                'fuck', 'shit', 'ass', 'bitch', 'idiot', 'stupid', 'bastard', 'crap', 'piss',
+                'puta', 'tarantado', 'gago', 'tangina', 'bobo', 'salot', 'hayop', 'ulol', 'leche'
+            ];
+            
+            $hasViolation = false;
+            foreach ($badWords as $word) {
+                if (preg_match("/\b{$word}\b/", $content)) {
+                    $hasViolation = true;
+                    break;
+                }
+            }
+            
+            // Update compatibility
+            $compatibility = $currentUser->getCompatibilityWith($user);
+            if ($hasViolation) {
+                $compatibility->addInteraction('violation');
+                // Store violation type in metadata
+                $message->metadata = ['violation' => true, 'warning' => 'Violations of these guidelines may result in account suspension or permanent ban.'];
+            } else {
+                $compatibility->addInteraction('message');
+            }
+            
             $message->save();
             
             // Update conversation's last message timestamp
@@ -239,7 +312,7 @@ class MessageController extends Controller
             // Load relationships for the frontend
             $message->load(['sender', 'receiver', 'conversation']);
             
-            // Broadcast the message
+            // Broadcast to other user
             broadcast(new MessageSent($message))->toOthers();
             
             DB::commit();
@@ -287,7 +360,7 @@ class MessageController extends Controller
     public function clearChat(User $user)
     {
         $currentUser = Auth::user();
-        
+
         // Delete all messages between the two users
         Message::where(function($query) use ($currentUser, $user) {
                 $query->where('sender_id', $currentUser->id)
@@ -298,8 +371,201 @@ class MessageController extends Controller
                       ->where('receiver_id', $currentUser->id);
             })
             ->delete();
-            
+
         return response()->json(['status' => 'success', 'message' => 'Chat cleared successfully']);
+    }
+
+    /**
+     * Search messages between two users
+     */
+    public function searchMessages(User $user, Request $request)
+    {
+        $currentUser = Auth::user();
+
+        $validated = $request->validate([
+            'query' => 'required|string|min:1|max:100'
+        ]);
+
+        $searchQuery = $validated['query'];
+
+        // Search messages between the two users
+        $messages = Message::where(function($query) use ($currentUser, $user, $searchQuery) {
+                $query->where(function($q) use ($currentUser, $user) {
+                    $q->where('sender_id', $currentUser->id)
+                      ->where('receiver_id', $user->id);
+                })
+                ->orWhere(function($q) use ($currentUser, $user) {
+                    $q->where('sender_id', $user->id)
+                      ->where('receiver_id', $currentUser->id);
+                });
+            })
+            ->where(function($query) use ($searchQuery) {
+                $query->where('content', 'like', "%{$searchQuery}%")
+                      ->orWhere('subject', 'like', "%{$searchQuery}%")
+                      ->orWhere('body', 'like', "%{$searchQuery}%");
+            })
+            ->with(['sender', 'receiver'])
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'query' => $searchQuery,
+            'results' => $messages->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'sender_id' => $message->sender_id,
+                    'sender_name' => $message->sender->fullName(),
+                    'receiver_id' => $message->receiver_id,
+                    'created_at' => $message->created_at->toISOString(),
+                    'formatted_time' => $message->created_at->format('M j, Y g:i A'),
+                ];
+            }),
+            'count' => $messages->count()
+        ]);
+    }
+
+    /**
+     * Mute notifications for a conversation
+     */
+    public function muteConversation(User $user, Request $request)
+    {
+        $currentUser = Auth::user();
+
+        // Get or create the conversation between these users
+        $conversation = Conversation::where(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $currentUser->id)
+                      ->where('user2_id', $user->id);
+            })
+            ->orWhere(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $user->id)
+                      ->where('user2_id', $currentUser->id);
+            })
+            ->first();
+
+        // Create conversation if it doesn't exist
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'user1_id' => $currentUser->id,
+                'user2_id' => $user->id,
+            ]);
+        }
+
+        // Check if already muted
+        $existingMute = MutedConversation::where('user_id', $currentUser->id)
+            ->where('conversation_id', $conversation->id)
+            ->active()
+            ->first();
+
+        if ($existingMute) {
+            return response()->json(['status' => 'error', 'message' => 'Conversation is already muted'], 400);
+        }
+
+        // Determine mute duration
+        $duration = $request->input('duration', 'forever'); // forever, 1hour, 8hours, 24hours, 1week
+        $mutedUntil = null;
+
+        switch ($duration) {
+            case '1hour':
+                $mutedUntil = now()->addHour();
+                break;
+            case '8hours':
+                $mutedUntil = now()->addHours(8);
+                break;
+            case '24hours':
+                $mutedUntil = now()->addDay();
+                break;
+            case '1week':
+                $mutedUntil = now()->addWeek();
+                break;
+            default:
+                $mutedUntil = null; // forever
+        }
+
+        MutedConversation::create([
+            'user_id' => $currentUser->id,
+            'conversation_id' => $conversation->id,
+            'muted_until' => $mutedUntil,
+        ]);
+
+        $message = $mutedUntil
+            ? 'Notifications muted until ' . $mutedUntil->format('M j, Y g:i A')
+            : 'Notifications muted indefinitely';
+
+        return response()->json([
+            'status' => 'success',
+            'message' => $message,
+            'muted_until' => $mutedUntil?->toISOString()
+        ]);
+    }
+
+    /**
+     * Unmute notifications for a conversation
+     */
+    public function unmuteConversation(User $user)
+    {
+        $currentUser = Auth::user();
+
+        // Get the conversation between these users
+        $conversation = Conversation::where(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $currentUser->id)
+                      ->where('user2_id', $user->id);
+            })
+            ->orWhere(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $user->id)
+                      ->where('user2_id', $currentUser->id);
+            })
+            ->first();
+
+        // If no conversation exists, nothing to unmute
+        if (!$conversation) {
+            return response()->json(['status' => 'success', 'message' => 'Notifications unmuted']);
+        }
+
+        // Find and delete the mute
+        $mute = MutedConversation::where('user_id', $currentUser->id)
+            ->where('conversation_id', $conversation->id)
+            ->active()
+            ->first();
+
+        if (!$mute) {
+            return response()->json(['status' => 'error', 'message' => 'Conversation is not muted'], 400);
+        }
+
+        $mute->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Notifications unmuted']);
+    }
+
+    /**
+     * Check if a conversation is muted
+     */
+    public function isMuted(User $user)
+    {
+        $currentUser = Auth::user();
+
+        $conversation = Conversation::where(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $currentUser->id)
+                      ->where('user2_id', $user->id);
+            })
+            ->orWhere(function($query) use ($currentUser, $user) {
+                $query->where('user1_id', $user->id)
+                      ->where('user2_id', $currentUser->id);
+            })
+            ->first();
+
+        if (!$conversation) {
+            return response()->json(['is_muted' => false]);
+        }
+
+        $isMuted = MutedConversation::where('user_id', $currentUser->id)
+            ->where('conversation_id', $conversation->id)
+            ->active()
+            ->exists();
+
+        return response()->json(['is_muted' => $isMuted]);
     }
 
     protected function getConversations($user)

@@ -1,0 +1,94 @@
+FIND MY ROOMMATE SYSTEM BACKUP INVENTORY
+Generated on: March 30, 2026
+===============================================
+
+BACKED UP SYSTEM COMPONENTS:
+
+📁 CORE LARAVEL STRUCTURE:
+├── app/ (89 items)
+│   ├── Http/Controllers/ (Admin, Auth, User controllers)
+│   ├── Models/ (User, Profile, Payment, Message models)
+│   ├── Http/Middleware/ (Authentication, authorization)
+│   ├── Notifications/ (System notifications)
+│   ├── Providers/ (Service providers)
+│   └── Services/ (Business logic services)
+
+├── bootstrap/ (4 items)
+│   ├── app.php (Application bootstrap)
+│   └── cache/ (Bootstrap cache)
+
+├── config/ (13 items)
+│   ├── app.php, database.php, mail.php
+│   ├── auth.php, broadcasting.php, cache.php
+│   ├── filesystems.php, logging.php, queue.php
+│   ├── services.php, session.php, view.php
+
+├── database/ (59 items)
+│   ├── migrations/ (Database schema)
+│   ├── seeders/ (Sample data)
+│   ├── factories/ (Model factories)
+│   └── backups/ (Database backups)
+
+├── resources/ (102 items)
+│   ├── views/ (Blade templates)
+│   │   ├── admin/ (Admin panel views)
+│   │   ├── auth/ (Authentication views)
+│   │   ├── profiles/ (User profile pages)
+│   │   ├── messages/ (Messaging interface)
+│   │   ├── pages/ (Static pages)
+│   │   ├── partials/ (Reusable components)
+│   │   └── activity/ (Activity logging)
+│   ├── lang/ (Language files)
+│   └── js/ (JavaScript assets)
+
+├── routes/ (6 items)
+│   ├── web.php (Web routes)
+│   ├── api.php (API routes)
+│   ├── console.php (Console routes)
+│   └── channels.php (Broadcasting routes)
+
+├── storage/ (10 items)
+│   ├── app/ (Application storage)
+│   ├── framework/ (Framework files)
+│   └── logs/ (Application logs)
+
+├── public/ (9 items)
+│   ├── css/, js/, images/ (Public assets)
+│   └── index.php (Entry point)
+
+📁 CONFIGURATION FILES:
+├── .env (Environment configuration)
+├── .env.example (Environment template)
+├── composer.json & composer.lock (PHP dependencies)
+├── package.json & package-lock.json (Node dependencies)
+├── artisan (Laravel command line)
+├── phpunit.xml (Testing configuration)
+├── tailwind.config.js (CSS framework)
+├── vite.config.js (Build tool)
+├── postcss.config.js (CSS processing)
+├── .gitignore, .gitattributes, .editorconfig (Git/Editor config)
+└── README.md (Documentation)
+
+📁 DEVELOPMENT FILES:
+├── vendor/ (Composer dependencies)
+├── node_modules/ (NPM dependencies)
+├── tests/ (Unit and feature tests)
+└── Various backup and utility scripts
+
+FEATURES INCLUDED IN BACKUP:
+✅ User authentication and authorization
+✅ Admin dashboard and management
+✅ Profile management system
+✅ Roommate matching algorithm
+✅ Messaging system
+✅ Payment processing
+✅ Activity logging
+✅ Location-based search (48 Pangasinan locations)
+✅ File upload functionality
+✅ Email notifications
+✅ API endpoints
+✅ Responsive design
+✅ Database migrations and seeders
+
+This backup contains your complete "Find My Roommate" application with all features,
+configurations, and dependencies needed to restore the system to its current state.

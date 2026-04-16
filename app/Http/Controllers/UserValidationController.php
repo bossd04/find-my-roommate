@@ -34,7 +34,7 @@ class UserValidationController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'id_type' => 'required|in:national_id,government_id,umid_id,passport,drivers_license',
+            'id_type' => 'required|in:national_id,government_id,umid_id,passport,drivers_license,student_id,other',
             'id_number' => 'required|string|max:255',
             'id_front_image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
             'id_back_image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',

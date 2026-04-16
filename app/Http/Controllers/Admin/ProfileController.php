@@ -29,7 +29,7 @@ class ProfileController extends Controller
      */
     public function update(Request $request)
     {
-        $user = $request->user();
+        $user = auth('admin')->user();
         
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -40,6 +40,11 @@ class ProfileController extends Controller
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        
+        // Split name into first and last name to ensure persistence (model hook builds name from these)
+        $nameParts = explode(' ', $validated['name'], 2);
+        $user->first_name = $nameParts[0];
+        $user->last_name = $nameParts[1] ?? '';
         
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
@@ -80,8 +85,8 @@ class ProfileController extends Controller
             $user->profile_photo_path = $path;
             $user->save();
 
-            // Generate the full URL to the stored image
-            $photoUrl = asset('storage/' . $path) . '?v=' . time();
+            // Generate the full URL to the stored image using direct route
+            $photoUrl = route('profile.photo.serve', ['filename' => $filename]) . '?v=' . time();
 
             return response()->json([
                 'success' => true,

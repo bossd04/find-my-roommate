@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('user_validations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('id_type', ['national_id', 'government_id', 'umid_id', 'passport', 'drivers_license']);
+            $table->enum('id_type', ['national_id', 'government_id', 'umid_id', 'passport', 'drivers_license', 'student_id', 'other']);
             $table->string('id_number');
             $table->string('id_front_image')->nullable();
             $table->string('id_back_image')->nullable();

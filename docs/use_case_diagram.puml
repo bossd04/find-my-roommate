@@ -1,0 +1,128 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam rectangle {
+    BackgroundColor<<Stakeholder>> #E1F5FE
+    BorderColor<<Stakeholder>> #0288D1
+    BackgroundColor<<Developer>> #F3E5F5
+    BorderColor<<Developer>> #7B1FA2
+}
+
+' Actors on the left
+actor "Student" as Student <<Stakeholder>>
+actor "Landlord" as Landlord <<Stakeholder>>
+actor "Admin" as Admin <<Stakeholder>>
+actor "AI Assistant" as AI <<Developer>>
+
+' Legend/Classification on the right
+rectangle "Actor Classification" as Legend {
+    rectangle "Stakeholders\n(End Users & System Operators)" as StakeholderLegend <<Stakeholder>> {
+        note right
+          - Student
+          - Landlord
+          - Admin
+        end note
+    }
+    
+    rectangle "Developer\n(System & Technical Component)" as DeveloperLegend <<Developer>> {
+        note right
+          - AI Assistant
+        end note
+    }
+}
+
+' Main System Boundary
+rectangle "Find My Roommate System" as System {
+    
+    ' Profile & Verification Management
+    package "Profile & Verification Management" as ProfilePkg {
+        usecase "Complete Profile" as CompleteProfile
+        usecase "Update Profile" as UpdateProfile
+        usecase "Upload Profile Picture" as UploadPhoto
+        usecase "Submit ID Verification" as SubmitID
+        usecase "Approve / Reject Verification" as ApproveReject
+    }
+    
+    ' Roommate Matching System
+    package "Roommate Matching System" as MatchingPkg {
+        usecase "Set Roommate Preferences" as SetPrefs
+        usecase "View Matches" as ViewMatches
+        usecase "Generate Compatibility Score" as GenScore
+        usecase "AI Roommate Suggestions" as AISuggest
+    }
+    
+    ' Messaging & Notifications
+    package "Messaging & Notifications" as MsgPkg {
+        usecase "Receive Notifications" as RecvNotif
+        usecase "Send Message" as SendMsg
+        usecase "Receive Message" as RecvMsg
+    }
+    
+    ' Boarding House Listings
+    package "Boarding House Listings" as ListingPkg {
+        usecase "View Listings" as ViewListings
+        usecase "Post Listing" as PostListing
+        usecase "Manage Listings" as ManageListings
+    }
+    
+    ' User Authentication
+    package "User Authentication" as AuthPkg {
+        usecase "Register Account" as Register
+        usecase "Login" as Login
+    }
+    
+    ' Admin Management
+    package "Admin Management" as AdminPkg {
+        usecase "Manage Users" as ManageUsers
+        usecase "Monitor System Activity" as Monitor
+        usecase "Manage Marbles" as ManageMarbles
+    }
+}
+
+' Student connections
+Student --> CompleteProfile
+Student --> UploadPhoto
+Student --> SubmitID
+Student --> SetPrefs
+Student --> ViewMatches
+Student --> RecvNotif
+Student --> SendMsg
+Student --> RecvMsg
+Student --> ViewListings
+Student --> Register
+Student --> Login
+
+' Landlord connections
+Landlord --> CompleteProfile
+Landlord --> UploadPhoto
+Landlord --> ViewListings
+Landlord --> PostListing
+Landlord --> ManageListings
+Landlord --> Register
+Landlord --> Login
+
+' Admin connections
+Admin --> ApproveReject
+Admin --> ManageUsers
+Admin --> Monitor
+Admin --> ManageMarbles
+Admin --> Login
+
+' AI Assistant connections
+AI --> AISuggest
+
+' Include relationships
+CompleteProfile ..> UpdateProfile : <<include>>
+SetPrefs ..> AISuggest : <<include>>
+ViewMatches ..> AISuggest : <<include>>
+ViewMatches ..> GenScore : <<include>>
+AISuggest ..> GenScore : <<include>>
+SendMsg ..> RecvMsg : <<include>>
+
+' Connect legend to actors (visual association)
+Student .. StakeholderLegend #line.dotted
+Landlord .. StakeholderLegend #line.dotted
+Admin .. StakeholderLegend #line.dotted
+AI .. DeveloperLegend #line.dotted
+
+@enduml

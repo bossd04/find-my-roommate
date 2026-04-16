@@ -78,6 +78,361 @@
     background: rgba(255, 255, 255, 0.5);
 }
 
+/* Filter Dropdown Styles */
+.filter-dropdown {
+    transition: all duration-200;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.filter-dropdown:hover {
+    border-color: #9ca3af;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.filter-dropdown:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dropdown-arrow {
+    transition: all duration-200;
+}
+
+.filter-dropdown:focus ~ .dropdown-arrow {
+    color: #6366f1;
+    transform: rotate(180deg);
+}
+
+/* Dark mode adjustments */
+.dark .filter-dropdown {
+    background-color: rgba(17, 24, 39, 0.5);
+    color: #ffffff;
+}
+
+.dark .filter-dropdown:hover {
+    border-color: #6b7280;
+}
+
+.dark .filter-dropdown:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2), 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Dark Mode Text Contrast */
+.dark .text-gray-400 {
+    color: rgb(156, 163, 175) !important;
+}
+
+.dark .text-gray-500 {
+    color: rgb(107, 114, 128) !important;
+}
+
+.dark .text-gray-300 {
+    color: rgb(209, 213, 219) !important;
+}
+
+.dark .text-gray-600 {
+    color: rgb(75, 85, 99) !important;
+}
+
+/* Dark mode table improvements */
+.dark table {
+    color: rgb(243, 244, 246) !important;
+}
+
+.dark tbody tr {
+    background-color: rgba(31, 41, 55, 0.5) !important;
+}
+
+.dark tbody tr:hover {
+    background-color: rgba(55, 65, 81, 0.7) !important;
+}
+
+/* Dark mode button improvements */
+.dark button:not(.bg-indigo-600):not(.bg-emerald-600):not(.bg-red-600):not(.bg-amber-600) {
+    background-color: rgba(55, 65, 81, 0.8) !important;
+    color: rgb(243, 244, 246) !important;
+}
+
+.dark button:hover:not(.bg-indigo-600):not(.bg-emerald-600):not(.bg-red-600):not(.bg-amber-600) {
+    background-color: rgba(75, 85, 99, 0.9) !important;
+}
+
+/* Enhanced Deep Dark Mode Theme */
+.dark {
+    background-color: #0f0f0f !important;
+}
+
+.dark body {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%) !important;
+}
+
+/* Enhanced Dark Mode Cards - Deeper and more immersive */
+.dark .bg-white\/80,
+.dark .bg-white\/90 {
+    background-color: rgba(15, 15, 15, 0.95) !important;
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .bg-gray-800\/80,
+.dark .bg-gray-800\/90 {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .bg-gray-50\/50 {
+    background-color: rgba(25, 25, 25, 0.8) !important;
+}
+
+.dark .bg-gray-900\/50 {
+    background-color: rgba(5, 5, 5, 0.8) !important;
+}
+
+/* Deep Dark Mode Text - Enhanced contrast */
+.dark .text-gray-900 {
+    color: #f8fafc !important;
+}
+
+.dark .text-white {
+    color: #f8fafc !important;
+}
+
+.dark .text-gray-400 {
+    color: #9ca3af !important;
+}
+
+.dark .text-gray-500 {
+    color: #6b7280 !important;
+}
+
+.dark .text-gray-300 {
+    color: #d1d5db !important;
+}
+
+.dark .text-gray-600 {
+    color: #4b5563 !important;
+}
+
+.dark .text-gray-700 {
+    color: #374151 !important;
+}
+
+.dark .text-indigo-400 {
+    color: #818cf8 !important;
+}
+
+.dark .text-indigo-500 {
+    color: #6366f1 !important;
+}
+
+.dark .text-indigo-600 {
+    color: #4f46e5 !important;
+}
+
+/* Deep Dark Mode Tables */
+.dark table {
+    color: #f8fafc !important;
+}
+
+.dark .bg-gray-50 {
+    background-color: rgba(25, 25, 25, 0.8) !important;
+}
+
+.dark .bg-gray-900\/50 {
+    background-color: rgba(5, 5, 5, 0.8) !important;
+}
+
+.dark tbody tr {
+    background-color: rgba(15, 15, 15, 0.6) !important;
+}
+
+.dark tbody tr:hover {
+    background-color: rgba(31, 31, 31, 0.8) !important;
+}
+
+.dark .divide-gray-50 > * + * {
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .divide-gray-800 > * + * {
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+/* Deep Dark Mode Borders */
+.dark .border-gray-100 {
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .border-gray-200 {
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .border-gray-700 {
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .border-b-gray-100 {
+    border-bottom-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .border-b-gray-700 {
+    border-bottom-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+/* Deep Dark Mode Buttons */
+.dark button:not(.bg-indigo-600):not(.bg-emerald-600):not(.bg-red-600):not(.bg-amber-600):not(.text-white) {
+    background-color: rgba(31, 31, 31, 0.9) !important;
+    color: #f8fafc !important;
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark button:hover:not(.bg-indigo-600):not(.bg-emerald-600):not(.bg-red-600):not(.bg-amber-600):not(.text-white) {
+    background-color: rgba(55, 55, 55, 0.9) !important;
+}
+
+/* Deep Dark Mode Inputs and Dropdowns */
+.dark input,
+.dark select,
+.dark textarea {
+    background-color: rgba(25, 25, 25, 0.9) !important;
+    color: #f8fafc !important;
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+    background-color: rgba(15, 15, 15, 0.95) !important;
+    border-color: #6366f1 !important;
+}
+
+.dark .filter-dropdown {
+    background-color: rgba(25, 25, 25, 0.9) !important;
+    color: #f8fafc !important;
+    border-color: rgba(55, 55, 55, 0.3) !important;
+}
+
+.dark .filter-dropdown:focus {
+    background-color: rgba(15, 15, 15, 0.95) !important;
+    border-color: #6366f1 !important;
+}
+
+/* Deep Dark Mode Status Badges */
+.dark .bg-amber-50 {
+    background-color: rgba(120, 53, 15, 0.3) !important;
+}
+
+.dark .bg-amber-900\/40 {
+    background-color: rgba(120, 53, 15, 0.4) !important;
+}
+
+.dark .bg-emerald-50 {
+    background-color: rgba(5, 150, 105, 0.2) !important;
+}
+
+.dark .bg-emerald-900\/40 {
+    background-color: rgba(5, 150, 105, 0.4) !important;
+}
+
+.dark .bg-blue-50 {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.dark .bg-blue-900\/40 {
+    background-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.dark .bg-indigo-50 {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.dark .bg-indigo-900\/20 {
+    background-color: rgba(99, 102, 241, 0.3) !important;
+}
+
+.dark .bg-indigo-900\/30 {
+    background-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Status Badge Text Overrides (Overrides global table text being white) */
+.dark table span.text-amber-800,
+.dark table span.text-amber-400,
+.dark table span.text-amber-300 {
+    color: #fbbf24 !important; /* amber-400 */
+}
+
+.dark table span.text-indigo-800,
+.dark table span.text-indigo-400,
+.dark table span.text-indigo-300 {
+    color: #818cf8 !important; /* indigo-400 */
+}
+
+.dark table span.text-emerald-800,
+.dark table span.text-emerald-400,
+.dark table span.text-emerald-300 {
+    color: #34d399 !important; /* emerald-400 */
+}
+
+.dark table span.text-gray-800,
+.dark table span.text-gray-400,
+.dark table span.text-gray-300 {
+    color: #d1d5db !important; /* gray-300 */
+}
+
+/* Deep Dark Mode Sidebar */
+.dark .bg-indigo-700 {
+    background-color: rgba(15, 15, 25, 0.95) !important;
+}
+
+.dark .bg-indigo-900\/40 {
+    background-color: rgba(15, 15, 25, 0.6) !important;
+}
+
+/* Deep Dark Mode Hover Effects */
+.dark .hover\:bg-indigo-50\/30:hover {
+    background-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+.dark .hover\:bg-indigo-900\/10:hover {
+    background-color: rgba(15, 15, 25, 0.3) !important;
+}
+
+.dark .hover\:bg-gray-50\/50:hover {
+    background-color: rgba(55, 55, 55, 0.5) !important;
+}
+
+.dark .hover\:bg-gray-900\/20:hover {
+    background-color: rgba(25, 25, 25, 0.5) !important;
+}
+
+.dark .hover\:text-indigo-600:hover {
+    color: #818cf8 !important;
+}
+
+.dark .hover\:text-indigo-400:hover {
+    color: #a5b4fc !important;
+}
+
+/* Deep Dark Mode Active States */
+.dark .bg-indigo-600 {
+    background-color: #4f46e5 !important;
+}
+
+.dark .bg-emerald-600 {
+    background-color: #059669 !important;
+}
+
+.dark .bg-red-600 {
+    background-color: #dc2626 !important;
+}
+
+.dark .bg-amber-600 {
+    background-color: #d97706 !important;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .dashboard-bg {

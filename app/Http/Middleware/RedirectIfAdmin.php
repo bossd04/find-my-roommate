@@ -14,12 +14,17 @@ class RedirectIfAdmin
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        if ($request->is('admin*') && !Auth::check()) {
+        // Prevent redirect loop if already on login page
+        if ($request->is('admin/login')) {
+            return $next($request);
+        }
+
+        if ($request->is('admin*') && !Auth::guard('admin')->check()) {
             return redirect()->route('admin.login');
         }
 
-        if ($request->is('admin*') && Auth::check() && !Auth::user()->is_admin) {
-            Auth::logout();
+        if ($request->is('admin*') && Auth::guard('admin')->check() && !Auth::guard('admin')->user()->is_admin) {
+            Auth::guard('admin')->logout();
             return redirect()->route('admin.login')
                 ->withErrors(['email' => 'You do not have permission to access the admin area.']);
         }

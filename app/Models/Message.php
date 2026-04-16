@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Auth;
+use App\Services\CompatibilityService;
 
 class Message extends Model
 {
@@ -13,6 +14,9 @@ class Message extends Model
         'sender_id',
         'receiver_id',
         'content',
+        'subject',
+        'body',
+        'image',
         'read_at',
         'is_delivered',
         'is_read',
@@ -37,6 +41,63 @@ class Message extends Model
         'time_ago',
         'status_class'
     ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::created(function ($message) {
+            // Track message interaction for compatibility
+            $sender = $message->sender;
+            $receiver = $message->receiver;
+            
+            if ($sender && $receiver) {
+                $compatibilityService = app(CompatibilityService::class);
+                $compatibilityService->trackMessageInteraction($sender, $receiver);
+            }
+        });
+    }
+
+    /**
+     * Get the subject attribute (accessor for backward compatibility).
+     */
+    public function getSubjectAttribute($value)
+    {
+        // If subject is stored, use it; otherwise generate from content
+        if ($value) {
+            return $value;
+        }
+        
+        // Generate subject from content preview
+        $content = $this->content ?? $this->body ?? '';
+        if (empty($content)) {
+            return 'No subject';
+        }
+        
+        // Extract first line or first 50 characters
+        $lines = explode("\n", $content);
+        $firstLine = trim($lines[0]);
+        
+        if (strlen($firstLine) > 60) {
+            return substr($firstLine, 0, 57) . '...';
+        }
+        
+        return $firstLine ?: 'Message';
+    }
+
+    /**
+     * Get the body attribute (accessor for backward compatibility).
+     */
+    public function getBodyAttribute($value)
+    {
+        // If body is stored, use it; otherwise use content
+        if ($value) {
+            return $value;
+        }
+        
+        return $this->content ?? '';
+    }
 
     /**
      * The "booting" method of the model.

@@ -100,7 +100,7 @@
                         @if($listing->image)
                             <div class="mt-2">
                                 <label class="block text-sm font-medium text-gray-700">Current Image</label>
-                                <img src="{{ asset('storage/' . $listing->image) }}" alt="{{ $listing->title }}" class="mt-1 h-32 w-auto object-cover rounded">
+                                <img src="{{ route('listing.image.serve', ['filename' => basename($listing->image)]) }}" alt="{{ $listing->title }}" class="mt-1 h-32 w-auto object-cover rounded">
                             </div>
                         @endif
 
@@ -166,6 +166,7 @@
                             <label for="available_from" class="block text-sm font-medium text-gray-700">Available From</label>
                             <input type="date" name="available_from" id="available_from" 
                                    value="{{ old('available_from', $listing->available_from ? \Carbon\Carbon::parse($listing->available_from)->format('Y-m-d') : '') }}" 
+                                   min="{{ date('Y-m-d') }}"
                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         </div>
 
@@ -248,17 +249,5 @@
         </div>
     </div>
 </div>
-
-@push('scripts')
-<script>
-    // Initialize date picker for available_from field
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr('#available_from', {
-            dateFormat: 'Y-m-d',
-            minDate: 'today'
-        });
-    });
-</script>
-@endpush
 
 @endsection

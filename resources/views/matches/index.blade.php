@@ -1,40 +1,42 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                {{ __('Find Your Perfect Roommate') }}
-            </h2>
-            <div class="relative">
-                <input type="text" placeholder="Search matches..." class="pl-10 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                <svg class="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-            </div>
-        </div>
-    </x-slot>
+@extends('layouts.app-with-sidebar')
 
-    <div class="min-h-screen bg-cover bg-center bg-fixed" style="background-image: url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');">
-        <div class="bg-black bg-opacity-50 min-h-screen py-8">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <!-- Filter and Sort Bar -->
-                <div class="bg-white rounded-xl shadow-md p-4 mb-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                    <div class="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
-                        <a href="{{ route('matches.index', ['filter' => 'all']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap {{ $filter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
-                            All Matches
-                        </a>
-                        <a href="{{ route('matches.index', ['filter' => 'pending']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap {{ $filter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
-                            Pending
-                        </a>
-                        <a href="{{ route('matches.index', ['filter' => 'accepted']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap {{ $filter === 'accepted' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
-                            Accepted
-                        </a>
-                        <a href="{{ route('matches.index', ['filter' => 'new']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap {{ $filter === 'new' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
-                            New
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-4 w-full md:w-auto">
-                        <span class="text-sm text-gray-600 whitespace-nowrap">Sort by:</span>
-                        <select class="border-gray-300 rounded-md shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm">
+@section('content')
+    <!-- Hero Section with Background -->
+    <div class="mb-8 rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden shadow-2xl" style="background: linear-gradient(135deg, #000000 0%, #1a1a2e 50%, #16213e 100%);">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-0 left-0 w-40 h-40 bg-blue-500 rounded-full blur-3xl animate-pulse"></div>
+            <div class="absolute top-20 right-20 w-32 h-32 bg-blue-600 rounded-full blur-2xl animate-pulse delay-75"></div>
+            <div class="absolute bottom-0 left-1/2 w-48 h-48 bg-blue-700 rounded-full blur-3xl animate-pulse delay-100"></div>
+            <div class="absolute bottom-10 right-10 w-24 h-24 bg-blue-500 rounded-full blur-xl animate-pulse delay-150"></div>
+        </div>
+        
+        <div class="relative z-10">
+            <h1 class="text-2xl sm:text-3xl font-bold mb-2">Your Matches</h1>
+            <p class="text-blue-100 text-base sm:text-lg">Connect with potential roommates based on your preferences.</p>
+        </div>
+    </div>
+    
+    <!-- Filter and Sort Bar -->
+    <div class="bg-gray-800 bg-opacity-95 backdrop-blur-md rounded-xl shadow-lg p-4 mb-8 border border-gray-700">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex space-x-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 thin-scrollbar">
+                <a href="{{ route('matches.index', ['filter' => 'all']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200 {{ $filter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600' }}">
+                    All Matches
+                </a>
+                <a href="{{ route('matches.index', ['filter' => 'pending']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200 {{ $filter === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600' }}">
+                    Pending
+                </a>
+                <a href="{{ route('matches.index', ['filter' => 'accepted']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200 {{ $filter === 'accepted' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600' }}">
+                    Accepted
+                </a>
+                <a href="{{ route('matches.index', ['filter' => 'new']) }}" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors duration-200 {{ $filter === 'new' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 border border-gray-600 hover:bg-gray-600' }}">
+                    New
+                </a>
+            </div>
+            <div class="flex items-center space-x-4 w-full md:w-auto">
+                <span class="text-sm text-gray-400 whitespace-nowrap">Sort by:</span>
+                <select class="bg-white border-gray-300 text-gray-900 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 text-sm">
                             <option>Compatibility</option>
                             <option>Recently Active</option>
                             <option>Distance</option>
@@ -45,174 +47,33 @@
                 
                 <!-- Match Cards Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="matches-container">
+                    @php
+                        // Track displayed users to avoid duplicates
+                        $displayedUserIds = [];
+                    @endphp
+                    
+                    <!-- Show all matches (Pending and Accepted) -->
                     @if(isset($matches) && $matches->count() > 0)
                         @foreach($matches as $match)
-                        <div class="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105">
-                            <!-- Profile Header -->
-                            <div class="relative">
-                                <img class="h-48 w-full object-cover" src="https://source.unsplash.com/random/400x300?person,{{ $loop->index }}" alt="Profile">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                                <div class="absolute bottom-4 left-4">
-                                    <div class="flex items-center">
-                                        <div class="h-14 w-14 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center overflow-hidden">
-                                            <span class="text-xl font-bold text-gray-600">{{ strtoupper(substr($match->display_user->first_name, 0, 1)) }}</span>
-                                        </div>
-                                        <div class="ml-3">
-                                            <h3 class="text-white font-bold text-lg">{{ $match->display_user->fullName() }}</h3>
-                                            @if($match->display_user->profile && $match->display_user->profile->age)
-                                            <p class="text-white text-sm">{{ $match->display_user->profile->age }} years old</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="absolute top-4 right-4">
-                                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                        {{ rand(70, 99) }}% Match
-                                    </span>
-                                </div>
-                            </div>
-
-                            <!-- Profile Details -->
-                            <div class="p-6">
-                                <div class="flex justify-between items-start">
-                                    <div>
-                                        <h4 class="font-semibold text-gray-900">{{ $match->display_user->first_name }}, {{ $match->display_user->profile->age ?? rand(18, 35) }}</h4>
-                                        <p class="text-sm text-gray-500">
-                                            <svg class="inline-block h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            </svg>
-                                            {{ $match->display_user->profile->city ?? 'Location not specified' }}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <!-- Preferences Section -->
-                                <div class="mt-4">
-                                    <h5 class="text-sm font-medium text-gray-700 mb-2">Preferences</h5>
-                                    <div class="space-y-2">
-                                        @if($match->display_user->preferences)
-                                            @if($match->display_user->preferences->budget_min && $match->display_user->preferences->budget_max)
-                                            <div class="flex items-center text-sm text-gray-600">
-                                                <svg class="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <span>Budget: ${{ number_format($match->display_user->preferences->budget_min) }} - ${{ number_format($match->display_user->preferences->budget_max) }}/mo</span>
-                                            </div>
-                                            @endif
-                                            
-                                            @if($match->display_user->preferences->move_in_date)
-                                            <div class="flex items-center text-sm text-gray-600">
-                                                <svg class="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                                </svg>
-                                                <span>Move-in: {{ \Carbon\Carbon::parse($match->display_user->preferences->move_in_date)->format('M Y') }}</span>
-                                            </div>
-                                            @endif
-                                            
-                                            @if($match->display_user->preferences->location_preferences)
-                                            <div class="flex items-start text-sm text-gray-600">
-                                                <svg class="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                </svg>
-                                                <span>Looking in: {{ $match->display_user->preferences->location_preferences }}</span>
-                                            </div>
-                                            @endif
-                                            
-                                            @if($match->display_user->preferences->lifestyle_preferences)
-                                            <div class="flex items-start text-sm text-gray-600">
-                                                <svg class="h-4 w-4 text-gray-500 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                                                </svg>
-                                                <span>Lifestyle: {{ $match->display_user->preferences->lifestyle_preferences }}</span>
-                                            </div>
-                                            @endif
-                                        @else
-                                            <p class="text-sm text-gray-500 italic">No preferences specified yet</p>
-                                        @endif
-                                    </div>
-                                </div>
-                                
-                                <!-- About Section -->
-                                <div class="mt-4">
-                                    <h5 class="text-sm font-medium text-gray-700 mb-2">About</h5>
-                                    <p class="text-sm text-gray-600 line-clamp-3">
-                                        @if($match->display_user->profile && $match->display_user->profile->bio)
-                                            {{ $match->display_user->profile->bio }}
-                                        @else
-                                            {{ [
-                                                'Clean and organized roommate looking for a quiet place to study and relax.',
-                                                'Outgoing and social person who loves meeting new people.',
-                                                'Grad student who spends most days on campus.',
-                                                'Young professional working in tech.',
-                                                'Exchange student looking to explore the city.',
-                                                'Artist and part-time barista.'
-                                            ][$loop->index % 6] }}
-                                        @endif
-                                    </p>
-                                </div>
-
-
-                                <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center">
-                                    <a href="{{ route('profile.show', $match->display_user) }}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500">
-                                        View Profile
-                                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                        </svg>
-                                    </a>
-                                    <div class="flex space-x-2">
-                                        @if($match->status === 'accepted')
-                                            <a href="{{ route('messages.show', $match->display_user) }}" class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                                                <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                                                </svg>
-                                                Message
-                                            </a>
-                                        @elseif($match->status === 'pending' && $match->user_id === auth()->id())
-                                            <span class="px-4 py-2 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-md">
-                                                Pending
-                                            </span>
-                                        @elseif($match->status === 'pending')
-                                            <form action="{{ route('matches.accept', $match) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
-                                                    <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    Accept
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('matches.reject', $match) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors duration-200">
-                                                    <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                    Reject
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </div>                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
+                            @php
+                                if(isset($match->display_user) && !in_array($match->display_user->id, $displayedUserIds)) {
+                                    $displayedUserIds[] = $match->display_user->id;
+                            @endphp
+                                @include('matches.partials.profile-card', ['user' => $match->display_user, 'match' => $match])
+                            @php
+                                }
+                            @endphp
                         @endforeach
-                    @elseif(isset($potentialMatches) && $potentialMatches->count() > 0)
-                        @foreach($potentialMatches as $user)
-                            @include('matches.partials.profile-card', ['user' => $user])
-                        @endforeach
-                    @else
+                    @endif
+                    
+                    <!-- Show empty state if no matches at all -->
+                    @if(empty($displayedUserIds))
                         <div class="col-span-3 text-center py-12">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">No matches found</h3>
-                            <p class="mt-1 text-sm text-bold-black-500">
+                            <h3 class="mt-2 text-sm font-medium text-gray-300">No matches found</h3>
+                            <p class="mt-1 text-sm text-gray-500">
                                 @if($filter === 'all')
                                     There are no potential matches at the moment. Check back later!
                                 @else
@@ -223,15 +84,15 @@
                     @endif
                 </div>
 
-                <!-- Pagination -->
-                @if(isset($potentialMatches) && method_exists($potentialMatches, 'hasPages') && $potentialMatches->hasPages())
-                <div class="mt-8 flex justify-center">
-                    {{ $potentialMatches->links() }}
-                </div>
-                @endif
+            <!-- Pagination -->
+            @if(isset($potentialMatches) && method_exists($potentialMatches, 'hasPages') && $potentialMatches->hasPages())
+            <div class="mt-8 flex justify-center">
+                {{ $potentialMatches->links() }}
             </div>
+            @endif
         </div>
     </div>
+</div>
 
     @push('scripts')
     <script>
@@ -306,40 +167,178 @@
                     const form = this.closest('form');
                     const url = form.action;
                     const data = new FormData(form);
+                    const action = this.getAttribute('data-action');
+                    const originalText = this.innerHTML;
+                    
+                    // Show loading state
+                    this.disabled = true;
+                    this.innerHTML = `<span class="animate-pulse">${action === 'like' ? 'Adding...' : 'Passing...'}</span>`;
                     
                     fetch(url, {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
+                            'Accept': 'application/json, text/html',
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify({
-                            _token: data.get('_token'),
-                            _method: 'POST'
-                        })
+                        body: new URLSearchParams(data)
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const card = form.closest('.bg-white');
-                            card.classList.add('transform', 'scale-0', 'opacity-0');
-                            setTimeout(() => card.remove(), 300);
-                            
-                            // Show match notification if it's a match
-                            if (data.is_match) {
-                                showMatchNotification();
+                    .then(response => {
+                        if (response.ok) {
+                            // Parse JSON response
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                return response.json().then(data => {
+                                    // Success - show feedback
+                                    if (action === 'like') {
+                                        this.innerHTML = `
+                                            <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            Pending
+                                        `;
+                                        this.classList.remove('bg-green-600', 'hover:bg-green-700');
+                                        this.classList.add('bg-yellow-600', 'cursor-not-allowed');
+                                        
+                                        // Update compatibility score if provided
+                                        if (data.compatibility_score) {
+                                            const card = this.closest('.bg-gray-800');
+                                            const compatibilityBadge = card.querySelector('.absolute.top-4.left-4 > div');
+                                            if (compatibilityBadge) {
+                                                const oldScore = compatibilityBadge.textContent.match(/\d+/)[0];
+                                                const newScore = data.compatibility_score;
+                                                compatibilityBadge.innerHTML = `
+                                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    ${newScore}%
+                                                `;
+                                                
+                                                // Update badge color based on new score
+                                                compatibilityBadge.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500');
+                                                const newColor = newScore >= 80 ? 'bg-green-500' : 
+                                                               (newScore >= 60 ? 'bg-blue-500' : 
+                                                               (newScore >= 40 ? 'bg-yellow-500' : 'bg-red-500'));
+                                                compatibilityBadge.classList.add(newColor);
+                                                
+                                                // Show score increase notification
+                                                if (newScore > oldScore) {
+                                                    showNotification(`Compatibility increased from ${oldScore}% to ${newScore}%!`, 'success');
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Disable the pass button too
+                                        const passButton = this.closest('div').querySelector('[data-action="dislike"]');
+                                        if (passButton) {
+                                            passButton.disabled = true;
+                                            passButton.style.display = 'none';
+                                        }
+                                        
+                                        // Keep user visible - don't remove from DOM
+                                        // Just update the UI to show the new state
+                                        
+                                    } else {
+                                        this.innerHTML = `
+                                            <svg class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            Passed
+                                        `;
+                                        this.classList.remove('bg-red-600', 'hover:bg-red-700');
+                                        this.classList.add('bg-gray-400', 'cursor-not-allowed');
+                                        
+                                        // Disable the add button too
+                                        const addButton = this.closest('div').querySelector('[data-action="like"]');
+                                        if (addButton) {
+                                            addButton.disabled = true;
+                                            addButton.style.display = 'none';
+                                        }
+                                        
+                                        // Remove the user card after pass
+                                        setTimeout(() => {
+                                            const card = this.closest('.bg-gray-800');
+                                            if (card) {
+                                                card.style.opacity = '0';
+                                                card.style.transform = 'scale(0.8)';
+                                                setTimeout(() => card.remove(), 300);
+                                            }
+                                        }, 1000);
+                                    }
+                                    
+                                    // Show notification
+                                    showNotification(action === 'like' ? 'User added successfully!' : 'User passed', 'success');
+                                    
+                                    // Check for mutual match
+                                    if (data.is_match) {
+                                        showMatchNotification();
+                                        // If it's a match, redirect after a delay
+                                        setTimeout(() => {
+                                            window.location.href = `/messages/${data.matched_user_id || this.closest('form').querySelector('input[name="user_id"]').value}`;
+                                        }, 2000);
+                                    }
+                                });
+                            } else {
+                                // Fallback for non-JSON responses
+                                if (action === 'like') {
+                                    this.innerHTML = 'Added!';
+                                    this.classList.add('bg-gray-400', 'cursor-not-allowed');
+                                } else {
+                                    this.innerHTML = 'Passed';
+                                    this.classList.add('bg-gray-400', 'cursor-not-allowed');
+                                }
+                                showNotification(action === 'like' ? 'User added successfully!' : 'User passed', 'success');
                             }
+                        } else {
+                            throw new Error('Network response was not ok');
                         }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                        showNotification('Something went wrong. Please try again.', 'error');
                     });
                 });
             });
             
+            function showNotification(message, type = 'info') {
+                // Remove existing notifications
+                const existingNotification = document.querySelector('.notification-toast');
+                if (existingNotification) {
+                    existingNotification.remove();
+                }
+                
+                // Create new notification
+                const notification = document.createElement('div');
+                notification.className = `notification-toast fixed top-4 right-4 px-6 py-3 rounded-lg shadow-xl flex items-center space-x-3 z-50 animate-fade-in-up ${
+                    type === 'success' ? 'bg-green-500' : 
+                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                } text-white`;
+                
+                notification.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        ${type === 'success' ? 
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 4l4 4"></path>' :
+                            '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M16 12h4M12 20h.01"></path>'
+                        }
+                    </svg>
+                    <span class="font-medium">${message}</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'translate-y-2', 'transition-all', 'duration-300');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+            
             function showMatchNotification() {
-                // Implement match notification UI here
-                alert('It\'s a match!');
+                alert('It\'s a match! You can now message each other.');
             }
         });
     </script>
     @endpush
-</x-app-layout>
+@endsection
