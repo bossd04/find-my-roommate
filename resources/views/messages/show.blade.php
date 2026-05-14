@@ -30,6 +30,16 @@
     #messages::-webkit-scrollbar-thumb:hover {
         background: rgba(79, 70, 229, 0.7);
     }
+    .chat-box {
+        height: 350px;
+        overflow-y: auto;  /* REQUIRED */
+    }
+    #messages {
+        height: 350px;
+        overflow-y: auto;   /* VERY IMPORTANT */
+        display: flex;
+        flex-direction: column;
+    }
     .message-bubble {
         max-width: 70%;
         word-wrap: break-word;
@@ -377,6 +387,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13l-7 7-7-7m14-8l-7 7-7-7" />
                             </svg>
                         </button>
+                    </div>
                     </div>
 
                     <!-- Message input -->

@@ -218,6 +218,28 @@
                                 class="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-sm resize-none focus:ring-0 focus:border-indigo-500 transition-all"
                                 required></textarea>
                         </div>
+                    @empty
+                        <div class="flex flex-col items-center justify-center py-12">
+                            <div class="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-4">
+                                <i class="fas fa-comment-slash text-2xl text-gray-400"></i>
+                            </div>
+                            <p class="text-gray-500 font-medium">No messages in this conversation</p>
+                        </div>
+                    @endforelse
+                </div>
+
+                <!-- Chat Input (Admin Reply) -->
+                <div class="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
+                    <form action="{{ route('admin.messages.store') }}" method="POST" enctype="multipart/form-data" class="flex gap-3">
+                        @csrf
+                        <input type="hidden" name="receiver_id" value="{{ $participant1->id === auth()->id() ? $participant2->id : $participant1->id }}">
+                        <input type="hidden" name="subject" value="Re: {{ $message->subject }}">
+                        
+                        <div class="flex-1 relative">
+                            <textarea name="body" rows="2" placeholder="Type your message..." 
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl text-sm resize-none focus:ring-0 focus:border-indigo-500 transition-all"
+                                required></textarea>
+                        </div>
                         
                         <div class="flex flex-col gap-2">
                             <label for="image" class="p-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl text-gray-500 hover:text-indigo-600 hover:border-indigo-500 cursor-pointer transition-all" title="Attach image">
