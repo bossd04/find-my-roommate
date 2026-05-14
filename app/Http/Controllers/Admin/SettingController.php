@@ -228,7 +228,55 @@ class SettingController extends Controller
             'timezone' => config('app.timezone'),
             'mail_from_address' => config('mail.from.address'),
             'mail_from_name' => config('mail.from.name'),
+            'app_theme' => config('app.theme', 'light'),
         ]);
+    }
+
+    /**
+     * Display the design & theme settings page.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function design()
+    {
+        return view('admin.settings.design', [
+            'appTheme' => config('app.theme', 'light'),
+            'primaryColor' => config('app.primary_color', '#6366f1'),
+            'sidebarMode' => config('app.sidebar_mode', 'expanded'),
+        ]);
+    }
+
+    /**
+     * Update design & theme settings.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateDesign(Request $request)
+    {
+        $validated = $request->validate([
+            'app_theme' => ['required', 'string', 'in:light,dark,system'],
+            'primary_color' => ['required', 'string', 'regex:/^#[a-fA-F0-9]{6}$/'],
+            'sidebar_mode' => ['required', 'string', 'in:expanded,compact'],
+        ]);
+
+        try {
+            $this->updateEnvValue('APP_THEME', $validated['app_theme']);
+            $this->updateEnvValue('APP_PRIMARY_COLOR', $validated['primary_color']);
+            $this->updateEnvValue('APP_SIDEBAR_MODE', $validated['sidebar_mode']);
+
+            Artisan::call('config:clear');
+            Artisan::call('config:cache');
+
+            return redirect()
+                ->route('admin.settings.design')
+                ->with('success', 'Design & Theme settings updated successfully!');
+                
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Failed to update design settings: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -3,7 +3,7 @@
 use Illuminate\Support\Str;
 
 return [
-    'default' => 'sqlite',
+    'default' => env('DB_CONNECTION', 'sqlite'),
     'connections' => [
         'sqlite' => [
             'driver' => 'sqlite',

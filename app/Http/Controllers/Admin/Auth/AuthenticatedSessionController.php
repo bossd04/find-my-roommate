@@ -46,8 +46,9 @@ class AuthenticatedSessionController extends Controller
                     'ip' => $request->ip(),
                 ]);
 
-                // Always redirect to admin dashboard after successful login
-                return redirect()->intended(route('admin.dashboard'));
+                // Clear any leftover intended URL and redirect directly to admin dashboard
+                $request->session()->forget('url.intended');
+                return redirect()->route('admin.dashboard');
             }
             
             // If authentication fails

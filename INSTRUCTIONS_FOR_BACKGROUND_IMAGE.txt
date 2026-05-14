@@ -1,0 +1,27 @@
+HOW TO APPLY YOUR UPLOADED BEDROOM IMAGE AS BACKGROUND:
+
+The code is now ready to use your uploaded bedroom image as the background for the messages page.
+However, you need to manually place the image file in the correct location.
+
+STEPS:
+1. Save your uploaded bedroom image (the one with blue LED strip lighting) as:
+   "messages-bg.jpg"
+
+2. Place this file in the following directory:
+   c:\Users\Edrian C Cervantes\OneDrive\Documents\Dev Dynamos\Find My Roommate\public\images\
+
+3. Make sure the file is named exactly: messages-bg.jpg
+
+4. Refresh your browser and visit: http://127.0.0.1:8000/messages
+
+The background will now show your bedroom image with blue LED lighting as the background
+for the messages page.
+
+WHAT I'VE DONE:
+✅ Updated CSS to use the local image path
+✅ Updated JavaScript to force background loading
+✅ Maintained the dark overlay for text readability
+✅ Preserved all existing message functionality
+
+The background will cover the entire screen and stay fixed while scrolling,
+creating a cool blue ambiance for your messaging interface.

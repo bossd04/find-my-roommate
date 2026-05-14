@@ -2,6 +2,32 @@
 
 @section('title', 'Edit User: ' . $user->name)
 
+@push('styles')
+<style>
+    /* Responsive Contrast System */
+    .high-contrast-title { color: #020617 !important; }
+    .high-contrast-subtext { color: #374151 !important; }
+    
+    .dark .high-contrast-title { 
+        color: #ffffff !important; 
+        text-shadow: 0 0 30px rgba(255,255,255,0.1);
+    }
+    .dark .high-contrast-subtext { 
+        color: #e2e8f0 !important; 
+    }
+    
+    .dark .text-gray-500 { color: #9ca3af !important; }
+    .dark .text-gray-400 { color: #818cf8 !important; }
+    .dark .text-gray-600 { color: #cbd5e1 !important; }
+    .dark .text-gray-700 { color: #e2e8f0 !important; }
+    .dark .text-gray-900 { color: #f1f5f9 !important; }
+
+    /* Dark Mode Card Specifics */
+    .dark .bg-gray-50 { background-color: rgba(31, 41, 55, 0.5) !important; }
+    .dark .border-gray-200 { border-color: rgba(75, 85, 99, 0.3) !important; }
+</style>
+@endpush
+
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -11,7 +37,7 @@
         </div>
         <div class="mt-4 md:mt-0">
             <a href="{{ route('admin.users.show', $user) }}" 
-               class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+               class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 <i class="fas fa-eye mr-2"></i> View Profile
             </a>
             <a href="{{ route('admin.users.index') }}" 
@@ -21,7 +47,7 @@
         </div>
     </div>
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="bg-white/90 shadow overflow-hidden sm:rounded-lg">
         <div class="px-4 py-5 sm:p-6">
             <form id="user-edit-form" method="POST" action="{{ route('admin.users.update', $user) }}" enctype="multipart/form-data" class="space-y-6" onsubmit="return validateForm(event)">
                 @csrf
@@ -36,8 +62,10 @@
                         <div class="mt-2 flex items-start">
                             <div class="relative">
                                 <div class="relative h-32 w-32 rounded-full overflow-hidden bg-gray-100 group" id="profile-photo-container">
-                                    @if($user->profile_photo_path)
-                                        <img src="{{ asset('storage/' . $user->profile_photo_path) }}" alt="{{ $user->name }}" class="h-full w-full object-cover" id="profile-photo-preview">
+                                    @if(!empty($user->avatar))
+                                        <img src="{{ route('avatar.serve', ['filename' => basename($user->avatar)]) }}" alt="{{ $user->name }}" class="h-full w-full object-cover" id="profile-photo-preview">
+                                    @elseif(!empty($user->profile_photo_path))
+                                        <img src="{{ route('profile.photo.serve', ['filename' => basename($user->profile_photo_path)]) }}" alt="{{ $user->name }}" class="h-full w-full object-cover" id="profile-photo-preview">
                                     @else
                                         <div class="h-full w-full flex items-center justify-center bg-gray-200">
                                             <svg class="h-16 w-16 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
@@ -72,7 +100,7 @@
                                                     </svg>
                                                     Change Photo
                                                 </label>
-                                                @if($user->profile_photo_path)
+                                                @if(!empty($user->avatar) || !empty($user->profile_photo_path))
                                                     <button type="button" onclick="document.getElementById('remove_photo').click()" class="inline-flex items-center px-3 py-2 border border-red-300 shadow-sm text-sm leading-4 font-medium rounded-md text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                                                         <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -82,10 +110,10 @@
                                                 @endif
                                             </div>
                                         
-                                        @if($user->profile_photo_path)
+                                        @if(!empty($user->avatar) || !empty($user->profile_photo_path))
                                         <div class="border-t border-gray-200 pt-4">
                                             <h3 class="text-sm font-medium text-gray-700">Current Photo</h3>
-                                            <p class="mt-1 text-xs text-gray-500">This is how your profile photo appears to others.</p>
+                                            <p class="mt-1 text-xs text-gray-500">This is how the profile photo appears to others.</p>
                                         </div>
                                         @endif
                                         </div>
@@ -219,10 +247,9 @@
                         </label>
                         <div class="mt-1 relative">
                             <input type="date" name="date_of_birth" id="date_of_birth" 
-                                   value="{{ old('date_of_birth', $user->date_of_birth ? $user->date_of_birth->format('Y-m-d') : '') }}" 
+                                   value="{{ old('date_of_birth', $user->date_of_birth ? \Carbon\Carbon::parse($user->date_of_birth)->format('Y-m-d') : '') }}" 
                                    class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                                    max="{{ now()->subYears(13)->format('Y-m-d') }}"
-                                   title="Please select a date (must be at least 13 years ago)">
                             @error('date_of_birth')
                                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
@@ -262,6 +289,7 @@
                     <!-- Status -->
                     <div class="sm:col-span-6 pt-2 border-t border-gray-200">
                         <div class="flex items-center">
+                            <input type="hidden" name="is_active" value="0">
                             <input type="checkbox" name="is_active" id="is_active" value="1"
                                    {{ old('is_active', $user->is_active) ? 'checked' : '' }}
                                    class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
@@ -279,7 +307,7 @@
                 <div class="pt-5 border-t border-gray-200">
                     <div class="flex justify-between items-center">
                         <div>
-                            <a href="{{ route('admin.users.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            <a href="{{ route('admin.users.index') }}" class="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Cancel
                             </a>
                             <button type="button" 

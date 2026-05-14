@@ -234,6 +234,26 @@
         // Set minimum date to today for available_from
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('available_from').min = today;
+        
+        // Add visual feedback for property type selection
+        const propertyTypeSelect = document.getElementById('property_type');
+        if (propertyTypeSelect) {
+            propertyTypeSelect.addEventListener('change', function() {
+                const selectedValue = this.value;
+                const validOptions = ['apartment', 'house', 'condo', 'room', 'dormitory', 'bedspace'];
+                
+                if (validOptions.includes(selectedValue)) {
+                    this.classList.remove('border-red-500');
+                    this.classList.add('border-green-500');
+                } else {
+                    this.classList.remove('border-green-500');
+                    this.classList.add('border-red-500');
+                }
+            });
+            
+            // Trigger change event to set initial state
+            propertyTypeSelect.dispatchEvent(new Event('change'));
+        }
     });
 </script>
 @endpush

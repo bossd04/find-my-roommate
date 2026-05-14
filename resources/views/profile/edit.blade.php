@@ -1,5 +1,8 @@
 <x-app-layout>
     <x-slot name="header">
+        <meta name="cache-control" content="no-cache, no-store, must-revalidate">
+        <meta name="pragma" content="no-cache">
+        <meta name="expires" content="0">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             {{ __('Edit Profile') }}
         </h2>
@@ -9,7 +12,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
             <!-- Profile Details Form -->
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-4xl">
+                <div class="max-w-6xl">
                     @include('profile.partials.update-profile-details-form')
                 </div>
             </div>
@@ -37,6 +40,21 @@
     </div>
 
     @stack('scripts')
+    
+    <!-- Force Cache Busting Script -->
+    <script>
+        // Force page reload to bypass browser cache
+        if (performance.navigation.type !== 1) {
+            console.log('Forcing page reload to bypass cache...');
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
+            }
+        }
+    </script>
     
     @if (session('status') === 'profile-updated')
         <script>

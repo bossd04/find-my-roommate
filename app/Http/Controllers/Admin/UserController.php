@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Models\UserValidation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Carbon\Carbon;
 
 class UserController extends Controller
@@ -124,7 +126,6 @@ class UserController extends Controller
             'phone' => $validated['phone'] ?? null,
             'bio' => $validated['bio'] ?? null,
             'email_verified_at' => now(),
-            'last_seen' => now(),
         ]);
 
         // Handle profile photo upload
@@ -145,9 +146,12 @@ class UserController extends Controller
     /**
      * Display the specified user.
      */
-    public function show(User $user)
+    public function show($id)
     {
-        $user->loadCount(['listings', 'sentMessages', 'receivedMessages']);
+        $user = User::withTrashed()->findOrFail($id);
+        
+        $user->loadCount(['listings', 'sentMessages', 'receivedMessages'])
+              ->load(['roommateProfile', 'userValidation', 'preference']);
         
         // Get recent activities (using database query log if ActivityLog model doesn't exist)
         $activities = [];
@@ -171,8 +175,10 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified user.
      */
-    public function edit(User $user)
+    public function edit($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         return view('admin.users.edit', [
             'user' => $user,
             'genders' => $this->genders,
@@ -183,14 +189,19 @@ class UserController extends Controller
     /**
      * Update the specified user in storage.
      */
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         // Debug: Log request data
         \Log::info('Update request data:', [
             'has_file' => $request->hasFile('profile_photo'),
             'file_valid' => $request->hasFile('profile_photo') ? $request->file('profile_photo')->isValid() : false,
             'all_files' => $request->allFiles(),
-            'all_input' => $request->except('_token', '_method')
+            'all_input' => $request->except('_token', '_method'),
+            'is_active_raw' => $request->input('is_active'),
+            'is_active_bool' => (bool) $request->input('is_active', 0),
+            'user_current_is_active' => $user->is_active,
         ]);
 
         $validated = $request->validate([
@@ -211,12 +222,26 @@ class UserController extends Controller
             'bio' => ['nullable', 'string', 'max:1000'],
             'profile_photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'remove_photo' => ['nullable', 'boolean'],
+            'is_active' => ['nullable', 'in:0,1'],
+        ]);
+
+        \Log::info('Before update:', [
+            'user_is_active' => $user->is_active,
+            'new_is_active' => (bool) $request->input('is_active', 0),
         ]);
 
         $user->first_name = $validated['first_name'];
         $user->last_name = $validated['last_name'];
         $user->email = $validated['email'];
         $user->is_admin = $validated['role'] === 'admin';
+        
+        // Check if status is changing before we set the new value
+        $newIsActive = (bool) $request->input('is_active', 0);
+        $wasActivated = !$user->is_active && $newIsActive;
+        $wasDeactivated = $user->is_active && !$newIsActive;
+        
+        $user->is_active = $newIsActive;
+        
         $user->gender = $validated['gender'] ?? null;
         $user->date_of_birth = $validated['date_of_birth'] ?? null;
         $user->phone = $validated['phone'] ?? null;
@@ -254,26 +279,113 @@ class UserController extends Controller
 
         $user->save();
 
+        // Debug: Verify the save worked
+        $freshUser = User::find($user->id);
+        \Log::info('After save verification:', [
+            'user_id' => $user->id,
+            'saved_is_active' => $user->is_active,
+            'fresh_is_active' => $freshUser->is_active,
+            'wasActivated' => $wasActivated,
+            'wasDeactivated' => $wasDeactivated,
+        ]);
+
+        // Prepare success message based on status change
+        if ($wasActivated) {
+            $message = 'User has been activated successfully. They can now log in.';
+        } elseif ($wasDeactivated) {
+            $message = 'User has been deactivated successfully. They will be prevented from logging in.';
+        } else {
+            $message = 'User updated successfully.';
+        }
+
         return redirect()->route('admin.users.index')
-            ->with('success', 'User updated successfully.');
+            ->with('success', $message);
     }
 
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(User $user)
+    public function destroy($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         // Prevent deleting your own account
         if ($user->id === auth()->id()) {
-            return redirect()->back()
-                ->with('error', 'You cannot delete your own account.');
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot delete your own account.'
+            ], 403);
         }
 
-        // Soft delete the user
-        $user->delete();
+        try {
+            // Delete associated files and data
+            $this->cleanupUserData($user);
+            
+            // Permanently delete the user (not soft delete)
+            $user->forceDelete();
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'User has been deleted.');
+            return response()->json([
+                'success' => true,
+                'message' => 'User has been permanently deleted.'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting user: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clean up all user-associated data and files
+     */
+    private function cleanupUserData(User $user)
+    {
+        // Delete avatar file if exists
+        if ($user->avatar && Storage::disk('public')->exists('avatars/' . $user->avatar)) {
+            Storage::disk('public')->delete('avatars/' . $user->avatar);
+        }
+        
+        // Delete profile photo if exists
+        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+        
+        // Delete ID card files if exists
+        if ($user->id_card_front && Storage::disk('public')->exists($user->id_card_front)) {
+            Storage::disk('public')->delete($user->id_card_front);
+        }
+        
+        if ($user->id_card_back && Storage::disk('public')->exists($user->id_card_back)) {
+            Storage::disk('public')->delete($user->id_card_back);
+        }
+        
+        // Delete roommate profile if exists
+        if ($user->roommateProfile) {
+            $user->roommateProfile->delete();
+        }
+        
+        // Delete user validation if exists
+        if ($user->userValidation) {
+            $user->userValidation->delete();
+        }
+        
+        // Delete messages sent by this user
+        $user->sentMessages()->delete();
+        
+        // Delete messages received by this user
+        $user->receivedMessages()->delete();
+        
+        // Delete listings if any
+        $user->listings()->delete();
+        
+        // Log the deletion for audit purposes
+        \Log::info('User permanently deleted by admin', [
+            'deleted_user_id' => $user->id,
+            'deleted_user_email' => $user->email,
+            'deleted_by_admin' => auth()->id(),
+            'deleted_at' => now()
+        ]);
     }
     
     /**
@@ -316,8 +428,10 @@ class UserController extends Controller
     /**
      * Toggle user's active status.
      */
-    public function toggleStatus(User $user)
+    public function toggleStatus($id)
     {
+        $user = User::withTrashed()->findOrFail($id);
+        
         // Prevent deactivating your own account
         if ($user->id === auth()->id()) {
             return response()->json([
@@ -334,6 +448,134 @@ class UserController extends Controller
             'success' => true,
             'is_active' => $user->is_active,
             'message' => $user->is_active ? 'User has been activated.' : 'User has been deactivated.'
+        ]);
+    }
+    
+    /**
+     * Display ID verification page.
+     */
+    public function idVerification()
+    {
+        $perPage = 20;
+        $page = max(1, (int) request()->get('page', 1));
+
+        $pending = User::query()
+            ->where('verification_status', 'pending')
+            ->whereNotNull('id_card_front')
+            ->whereNotNull('id_card_back')
+            ->with(['roommateProfile', 'preferences', 'userValidation'])
+            ->orderByDesc('updated_at')
+            ->get();
+
+        $ready = $pending->filter(fn (User $user) => $user->isProfileComplete())->values();
+        $total = $ready->count();
+        $slice = $ready->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $users = new LengthAwarePaginator(
+            $slice,
+            $total,
+            $perPage,
+            $page,
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+
+        return view('admin.users.id-verification', compact('users'));
+    }
+    
+    /**
+     * Display pending approvals page.
+     */
+    public function pendingApprovals()
+    {
+        $users = User::where(function ($query) {
+                $query->where('is_approved', false)
+                      ->orWhereNull('is_approved');
+            })
+            ->whereNull('deleted_at')
+            ->latest()
+            ->paginate(20);
+            
+        return view('admin.users.pending-approvals', compact('users'));
+    }
+    
+    /**
+     * Verify user's ID.
+     */
+    public function verifyId($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        
+        if ($user->id_card_front && $user->verification_status === 'pending') {
+            $user->update([
+                'verification_status' => 'approved',
+            ]);
+
+            $user->userValidation?->update([
+                'status' => 'approved',
+                'verified_at' => now(),
+                'rejection_reason' => null,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'ID has been verified successfully.'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'No pending ID verification found for this user.'
+        ]);
+    }
+    
+    /**
+     * Reject user's ID verification.
+     */
+    public function rejectId(Request $request, $id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        
+        $request->validate([
+            'rejection_reason' => 'required|string|max:255',
+        ]);
+        
+        if ($user->id_card_front && $user->verification_status === 'pending') {
+            $user->update([
+                'verification_status' => 'rejected',
+            ]);
+
+            $user->userValidation?->update([
+                'status' => 'rejected',
+                'rejection_reason' => $request->rejection_reason,
+                'verified_at' => null,
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'ID verification has been rejected.'
+            ]);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'No pending ID verification found for this user.'
+        ]);
+    }
+
+    /**
+     * Approve user account.
+     */
+    public function approve($id)
+    {
+        $user = User::withTrashed()->findOrFail($id);
+        $user->update(['is_approved' => true]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'User account has been approved.'
         ]);
     }
 }

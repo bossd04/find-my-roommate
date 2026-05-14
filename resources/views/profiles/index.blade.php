@@ -38,7 +38,7 @@
                                             </div>
                                             <div class="ml-4">
                                                 <h3 class="text-lg leading-6 font-medium text-gray-900">{{ $profile->display_name }}</h3>
-                                                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ $profile->age }} years old • {{ ucfirst($profile->gender) }}</p>
+                                                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ abs($profile->age) }} years old • {{ ucfirst($profile->gender) }}</p>
                                             </div>
                                         </div>
                                     </div>

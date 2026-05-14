@@ -99,7 +99,7 @@
                                 <div class="sm:col-span-3">
                                     <fieldset>
                                         <legend class="block text-sm font-medium text-gray-700">Lifestyle Preferences</legend>
-                                        <div class="mt 2 space-y-2">
+                                        <div class="mt-2 space-y-2">
                                             <div class="flex items-center">
                                                 <input id="smoking_ok" name="smoking_ok" type="checkbox" value="1" {{ old('smoking_ok', $preferences->smoking_ok) ? 'checked' : '' }} class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded">
                                                 <label for="smoking_ok" class="ml-2 block text-sm text-gray-700">Smoking is okay</label>
@@ -237,8 +237,8 @@
 
                     <div class="pt-5">
                         <div class="flex justify-end">
-                            <a href="{{ route('profiles.index') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                Back to Profile
+                            <a href="{{ route('dashboard') }}" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Back to Dashboard
                             </a>
                             <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Save Preferences

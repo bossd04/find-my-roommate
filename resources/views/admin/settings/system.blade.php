@@ -29,10 +29,6 @@
                         <i class="fas fa-envelope mr-3"></i>
                         Email Settings
                     </a>
-                    <a href="{{ route('admin.settings.payment') }}" class="mt-1 flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-md group">
-                        <i class="fas fa-credit-card mr-3"></i>
-                        Payment Settings
-                    </a>
                 </nav>
                 <div class="p-4 border-t border-gray-200">
                     <form action="{{ route('admin.settings.clear-cache') }}" method="POST">

@@ -76,6 +76,17 @@
                                     </div>
                                 </div>
 
+                                <div class="sm:col-span-6">
+                                    <label for="facebook_url" class="block text-sm font-medium text-gray-700">Facebook Profile URL</label>
+                                    <div class="mt-1">
+                                        <input type="url" name="facebook_url" id="facebook_url" value="{{ old('facebook_url', $profile->facebook_url) }}" placeholder="https://facebook.com/yourusername" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md @error('facebook_url') border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 @enderror">
+                                        <p class="mt-2 text-sm text-gray-500">Add your Facebook profile link so others can connect with you.</p>
+                                        @error('facebook_url')
+                                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+
                                 <div class="sm:col-span-3">
                                     <label for="university" class="block text-sm font-medium text-gray-700">University/Institution</label>
                                     <div class="mt-1">

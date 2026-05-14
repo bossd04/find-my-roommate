@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('type');
-            $table->morphs('notifiable');
+            $table->string('type', 50); // new_listing, message, match, etc.
+            $table->string('title');
             $table->text('message');
+            $table->json('data')->nullable(); // additional data like listing_id, etc.
             $table->timestamp('read_at')->nullable();
-            $table->json('data')->nullable();
             $table->timestamps();
             
-            // Add indexes for faster queries
             $table->index(['user_id', 'read_at']);
+            $table->index('type');
         });
     }
 

@@ -39,6 +39,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\RefreshTokenMiddleware::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
+            \App\Http\Middleware\CheckUserActive::class,
         ],
 
         'api' => [
@@ -90,5 +91,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'admin.redirect' => \App\Http\Middleware\RedirectIfAdmin::class,
+        'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
     ];
 }

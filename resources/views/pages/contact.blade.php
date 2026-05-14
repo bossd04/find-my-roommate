@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+@extends('layouts.contact')
 
 @section('title', 'Contact Support')
 
@@ -172,7 +172,11 @@
                                     </label>
                                     <input type="text" id="name" name="name" required
                                            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                           placeholder="John Doe">
+                                           placeholder="John Doe"
+                                           value="{{ old('name') }}">
+                                    @error('name')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                                 <div>
                                     <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
@@ -180,7 +184,11 @@
                                     </label>
                                     <input type="email" id="email" name="email" required
                                            class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                           placeholder="you@example.com">
+                                           placeholder="you@example.com"
+                                           value="{{ old('email') }}">
+                                    @error('email')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
                             
@@ -190,7 +198,11 @@
                                 </label>
                                 <input type="text" id="subject" name="subject" required
                                        class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                       placeholder="How can we help you?">
+                                       placeholder="How can we help you?"
+                                       value="{{ old('subject') }}">
+                                @error('subject')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                             
                             <div>
@@ -199,7 +211,10 @@
                                 </label>
                                 <textarea id="message" name="message" rows="4" required
                                           class="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                                          placeholder="Describe your issue or question..."></textarea>
+                                          placeholder="Describe your issue or question...">{{ old('message') }}</textarea>
+                                @error('message')
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div>

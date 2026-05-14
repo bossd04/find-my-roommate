@@ -106,8 +106,8 @@
         </div>
         
         <div class="mt-6 text-center">
-            <a href="{{ route('register') }}" class="text-indigo-600 hover:text-indigo-500 font-medium">
-                ← Back to Registration
+            <a href="{{ url()->previous() ?: route('home') }}" class="text-indigo-600 hover:text-indigo-500 font-medium">
+                ← Back to Previous Page
             </a>
         </div>
     </div>

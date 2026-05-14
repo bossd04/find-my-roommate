@@ -19,13 +19,45 @@
         <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
         @endif
         
-        <!-- jQuery -->
+        <!-- Profile Page Background Override -->
+        @if(request()->routeIs('profile.index'))
+        <style>
+            html body {
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f5f3ff 100%) !important;
+            }
+            body {
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f5f3ff 100%) !important;
+            }
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f5f3ff 100%) !important;
+                z-index: -1;
+            }
+            .min-h-screen {
+                background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f5f3ff 100%) !important;
+            }
+            main {
+                background: transparent !important;
+            }
+            .flex-1 {
+                background: transparent !important;
+            }
+        </style>
+        @endif
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         
         <!-- CSRF Handler -->
         <script src="{{ asset('js/csrf-handler.js') }}"></script>
     </head>
-    <body class="font-sans antialiased min-h-screen">
+    <body class="font-sans antialiased min-h-screen" 
+          @if(request()->routeIs('profile.index'))
+          style="background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f5f3ff 100%) !important;"
+          @endif>
         <div class="min-h-screen flex flex-col">
             @include('layouts.navigation')
 

@@ -3,172 +3,128 @@
 @section('title', 'My Profile')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="container mx-auto px-6 py-8">
     <div class="max-w-4xl mx-auto">
         <!-- Page Header -->
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">Profile Settings</h1>
-            <p class="mt-1 text-sm text-gray-500">Update your account's profile information and password.</p>
+        <div class="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-3xl p-8 mb-8 border border-gray-100 dark:border-gray-700 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between relative z-10">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Profile Settings</h1>
+                    <p class="mt-2 text-sm font-bold text-gray-500 uppercase tracking-widest">Update your account's profile information and password.</p>
+                </div>
+                <div class="mt-6 md:mt-0 flex items-center bg-indigo-50 dark:bg-indigo-900/20 px-6 py-3 rounded-2xl border border-indigo-100 dark:border-indigo-900/50">
+                    <span class="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest leading-none mr-3">Status:</span>
+                    <span class="text-xs font-black text-emerald-500 uppercase tracking-widest flex items-center">
+                        <i class="fas fa-circle text-[8px] mr-2 animate-pulse"></i> Online
+                    </span>
+                </div>
+            </div>
         </div>
 
-        <div class="bg-white shadow rounded-xl overflow-hidden">
-            <div class="p-6 sm:p-8">
-                <!-- Profile Photo Section -->
-                <div class="mb-8">
-                    <h2 class="text-lg font-medium text-gray-900">Profile Photo</h2>
-                    <p class="mt-1 text-sm text-gray-500">Update your profile photo</p>
-                    
-                    <div class="mt-4 flex items-center">
-                        <div class="relative group">
-                            <div class="h-16 w-16 rounded-full overflow-hidden bg-white border-[0.5px] border-gray-200 flex items-center justify-center">
+        <div class="space-y-8">
+            <!-- Profile Photo & Primary Info Card -->
+            <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="p-8">
+                    <!-- Photo Section -->
+                    <div class="flex flex-col md:flex-row md:items-center mb-10 gap-10">
+                        <div class="relative group mx-auto md:mx-0">
+                            <div class="h-20 w-20 rounded-full overflow-hidden bg-gray-50 dark:bg-gray-900 border-4 border-white dark:border-gray-800 shadow-xl flex items-center justify-center transition-all duration-500 group-hover:scale-105">
                                 @if(auth()->user()->profile_photo_path)
                                     <img id="profile-photo-preview" 
                                          src="{{ auth()->user()->profile_photo_url }}" 
                                          alt="{{ auth()->user()->name }}" 
                                          class="h-full w-full object-cover">
                                 @else
-                                    <span id="profile-initials" class="text-xl font-medium text-gray-500">
+                                    <div id="profile-initials" class="text-3xl font-black text-indigo-600 dark:text-indigo-400">
                                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                                    </span>
+                                    </div>
                                 @endif
                                 
-                                <!-- Upload Overlay -->
-                                <div id="uploading-overlay" class="hidden absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
-                                    <svg class="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
+                                <div id="uploading-overlay" class="hidden absolute inset-0 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                    <i class="fas fa-circle-notch fa-spin text-white text-2xl"></i>
                                 </div>
                             </div>
-                            
-                            <!-- Camera Icon - Smaller and more subtle -->
-                            <div class="absolute -bottom-0.5 -right-0.5 bg-white p-0.5 rounded-full shadow-sm border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200">
-                                <label for="profile_photo" class="cursor-pointer text-gray-500 hover:text-indigo-500 block">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                <label for="profile_photo" class="cursor-pointer text-gray-500 hover:text-indigo-500 block">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <input type="file" 
-                                           id="profile_photo" 
-                                           name="profile_photo" 
-                                           class="sr-only" 
-                                           accept="image/*"
-                                           onchange="handleProfilePhotoUpload(this)">
-                                </label>
-                            </div>
+                             
+                            <label for="profile_photo" class="absolute bottom-0 right-0 p-3 bg-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-500/30 cursor-pointer hover:bg-indigo-700 transition-all hover:-translate-y-1 active:scale-90 border-4 border-white dark:border-gray-800">
+                                <i class="fas fa-camera text-sm"></i>
+                                <input type="file" id="profile_photo" name="profile_photo" class="sr-only" accept="image/*" onchange="handleProfilePhotoUpload(this)">
+                            </label>
                         </div>
                         
-                        <div class="ml-6">
-                            <p class="text-sm text-gray-500">JPG, PNG or GIF (max 2MB)</p>
-                            <p id="upload-message" class="mt-1 text-sm"></p>
+                        <div class="flex-1 text-center md:text-left">
+                            <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Your Profile Photo</h2>
+                            <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 leading-relaxed">Customize your appearance across the platform. <br>Recommended: Square JPG or PNG, 800x800px.</p>
+                            <p id="upload-message" class="text-xs font-black uppercase tracking-widest text-indigo-500"></p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="border-t border-gray-200 pt-8">
-                    <h2 class="text-lg font-medium text-gray-900">Profile Information</h2>
-                    <p class="mt-1 text-sm text-gray-500">Update your account's profile information and email address.</p>
                     
-                    <form action="{{ route('admin.profile.update') }}" method="POST" class="mt-6 space-y-6">
+                    <!-- Information Form -->
+                    <div class="border-t border-gray-100 dark:border-gray-700 pt-10">
+                        <form action="{{ route('admin.profile.update') }}" method="POST" class="space-y-8">
+                            @csrf
+                            @method('PUT')
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-2">
+                                    <input type="text" name="name" id="name" value="{{ old('name', auth()->user()->name) }}" 
+                                           class="block w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent rounded-2xl text-sm font-black text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder-gray-400 dark:placeholder-gray-500">
+                                    @error('name') <p class="mt-1 text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{{ $message }}</p> @enderror
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <input type="email" name="email" id="email" value="{{ old('email', auth()->user()->email) }}" 
+                                           class="block w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent rounded-2xl text-sm font-black text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder-gray-400 dark:placeholder-gray-500">
+                                    @error('email') <p class="mt-1 text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" class="px-10 py-4 bg-indigo-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-500/30 transition-all active:scale-95">
+                                    <i class="fas fa-save mr-3"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Password Card -->
+            <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+                <div class="p-8">
+                    <h2 class="text-2xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Security & Password</h2>
+                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-10">Ensure your account is protected with a long, random password.</p>
+                    
+                    <form action="{{ route('admin.profile.update') }}" method="POST" class="space-y-8">
                         @csrf
                         @method('PUT')
                         
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
-                                <div class="mt-1">
-                                    <input type="text" 
-                                           name="name" 
-                                           id="name" 
-                                           value="{{ old('name', auth()->user()->name) }}" 
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                           autocomplete="name">
-                                </div>
-                                @error('name')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
+                        <div class="space-y-6">
+                            <div class="space-y-2">
+                                <input type="password" name="current_password" id="current_password" 
+                                       class="block w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent rounded-2xl text-sm font-black text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder-gray-400 dark:placeholder-gray-500" 
+                                       placeholder="••••••••">
+                                @error('current_password') <p class="mt-1 text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{{ $message }}</p> @enderror
                             </div>
                             
-                            <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                                <div class="mt-1">
-                                    <input type="email" 
-                                           name="email" 
-                                           id="email" 
-                                           value="{{ old('email', auth()->user()->email) }}" 
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                           autocomplete="email">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-2">
+                                    <input type="password" name="password" id="password" 
+                                           class="block w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent rounded-2xl text-sm font-black text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder-gray-400 dark:placeholder-gray-500" 
+                                           placeholder="Enter new password">
+                                    @error('password') <p class="mt-1 text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{{ $message }}</p> @enderror
                                 </div>
-                                @error('email')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                        
-                        <div class="pt-6">
-                            <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                                Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                
-                <div class="border-t border-gray-200 pt-8 mt-8">
-                    <h2 class="text-lg font-medium text-gray-900">Update Password</h2>
-                    <p class="mt-1 text-sm text-gray-500">Ensure your account is using a long, random password to stay secure.</p>
-                    
-                    <form action="{{ route('admin.profile.update') }}" method="POST" class="mt-6 space-y-6">
-                        @csrf
-                        @method('PUT')
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
-                                <div class="mt-1">
-                                    <input type="password" 
-                                           name="current_password" 
-                                           id="current_password" 
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                           autocomplete="current-password">
-                                </div>
-                                @error('current_password')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            
-                            <div>
-                                <label for="password" class="block text-sm font-medium text-gray-700">New Password</label>
-                                <div class="mt-1">
-                                    <input type="password" 
-                                           name="password" 
-                                           id="password" 
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                           autocomplete="new-password">
-                                </div>
-                                @error('password')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            
-                            <div>
-                                <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                                <div class="mt-1">
-                                    <input type="password" 
-                                           name="password_confirmation" 
-                                           id="password_confirmation" 
-                                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                                           autocomplete="new-password">
+                                
+                                <div class="space-y-2">
+                                    <input type="password" name="password_confirmation" id="password_confirmation" 
+                                           class="block w-full px-4 py-3 bg-gray-50/50 dark:bg-gray-900/50 border border-transparent rounded-2xl text-sm font-black text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-900 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all placeholder-gray-400 dark:placeholder-gray-500" 
+                                           placeholder="Confirm new password">
+                                    @error('password_confirmation') <p class="mt-1 text-[10px] font-black text-red-500 uppercase tracking-widest ml-1">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="pt-2">
-                            <button type="submit" class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" class="px-10 py-4 bg-gray-900 dark:bg-white dark:text-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-gray-800 dark:hover:bg-gray-100 shadow-xl transition-all active:scale-95">
                                 Update Password
                             </button>
                         </div>

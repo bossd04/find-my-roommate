@@ -30,6 +30,7 @@ class VerifyCsrfToken extends Middleware
         'vendor/*',
         '_debugbar/*',
         'storage/*',
+        'superadmin/login',
     ];
 
     /**

@@ -14,18 +14,18 @@ return new class extends Migration
         Schema::create('preferences', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('cleanliness_level', ['very_clean', 'clean', 'average', 'messy', 'very_messy']);
-            $table->enum('sleep_pattern', ['early_bird', 'night_owl', 'flexible']);
-            $table->enum('study_habit', ['quiet_environment', 'music_ok', 'tv_background', 'no_preference']);
-            $table->enum('noise_tolerance', ['quiet', 'moderate', 'loud']);
+            $table->string('cleanliness_level')->nullable();
+            $table->string('sleep_pattern')->nullable();
+            $table->string('study_habit')->nullable();
+            $table->string('noise_tolerance')->nullable();
             $table->decimal('min_budget', 10, 2)->nullable();
             $table->decimal('max_budget', 10, 2)->nullable();
             $table->json('hobbies')->nullable();
             $table->json('lifestyle_tags')->nullable();
-            $table->enum('smoking', ['never', 'sometimes', 'regularly', 'only_outside'])->default('never');
-            $table->enum('pets', ['none', 'cats_ok', 'dogs_ok', 'all_pets_ok', 'no_pets'])->default('none');
-            $table->enum('overnight_visitors', ['not_allowed', 'with_notice', 'anytime'])->default('with_notice');
-            $table->enum('schedule', ['morning', 'evening', 'night_shift', 'irregular'])->default('regular');
+            $table->string('smoking')->default('never');
+            $table->string('pets')->default('none');
+            $table->string('overnight_visitors')->default('with_notice');
+            $table->string('schedule')->default('irregular');
             $table->timestamps();
             
             $table->unique('user_id');

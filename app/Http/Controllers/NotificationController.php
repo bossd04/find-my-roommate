@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Auth;
 class NotificationController extends Controller
 {
     /**
+     * Display all notifications for the authenticated user
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $notifications = Auth::user()->notifications()->latest()->paginate(20);
+        
+        return view('notifications.index', compact('notifications'));
+    }
+
+    /**
      * Mark a notification as read
      *
      * @param  int  $id

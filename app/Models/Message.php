@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Auth;
 
 class Message extends Model
 {
@@ -12,54 +11,15 @@ class Message extends Model
         'conversation_id',
         'sender_id',
         'receiver_id',
+        'role',
         'content',
-        'read_at',
+        'message_type',
+        'delivery_status',
         'is_delivered',
         'is_read',
-        'type',
+        'read_at',
         'metadata',
-        'message_type',
-        'reaction',
-        'delivery_status'
     ];
-
-    protected $casts = [
-        'read_at' => 'datetime',
-        'is_delivered' => 'boolean',
-        'is_read' => 'boolean',
-        'metadata' => 'array',
-    ];
-
-    protected $with = ['sender', 'receiver', 'conversation'];
-
-    protected $appends = [
-        'is_own_message',
-        'time_ago',
-        'status_class'
-    ];
-
-    /**
-     * The "booting" method of the model.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($message) {
-            // Update conversation's last message timestamp and increment unread count
-            if ($message->conversation) {
-                $message->conversation->update([
-                    'last_message_at' => $message->created_at
-                ]);
-                
-                if ($message->conversation->user1_id == $message->receiver_id) {
-                    $message->conversation->increment('unread_count_user1');
-                } else {
-                    $message->conversation->increment('unread_count_user2');
-                }
-            }
-        });
-    }
 
     /**
      * Get the conversation that owns the message.
@@ -70,117 +30,34 @@ class Message extends Model
     }
 
     /**
-     * Get the user that sent the message.
+     * Get the sender of the message.
      */
     public function sender(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'sender_id')->withDefault([
-            'name' => 'Unknown User',
-            'avatar' => 'https://ui-avatars.com/api/?name=Unknown&background=random',
-        ]);
+        return $this->belongsTo(User::class, 'sender_id')->withTrashed();
     }
 
     /**
-     * Get the user that received the message.
+     * Get the receiver of the message.
      */
     public function receiver(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'receiver_id')->withDefault([
-            'name' => 'Unknown User',
-            'avatar' => 'https://ui-avatars.com/api/?name=Unknown&background=random',
-        ]);
+        return $this->belongsTo(User::class, 'receiver_id')->withTrashed();
     }
 
     /**
-     * Get the time ago in human readable format.
+     * Helper to check if message is from the user.
      */
-    public function getTimeAgoAttribute(): string
+    public function isUser(): bool
     {
-        return $this->created_at->diffForHumans();
+        return $this->role === 'user';
     }
 
     /**
-     * Check if the message was sent by the current user.
+     * Helper to check if message is from the assistant.
      */
-    public function getIsOwnMessageAttribute(): bool
+    public function isAssistant(): bool
     {
-        return $this->sender_id === Auth::id();
-    }
-
-    /**
-     * Scope a query to only include messages between two users.
-     */
-    public function scopeBetweenUsers($query, $user1Id, $user2Id)
-    {
-        return $query->where(function($q) use ($user1Id, $user2Id) {
-            $q->where('sender_id', $user1Id)
-              ->where('receiver_id', $user2Id);
-        })->orWhere(function($q) use ($user1Id, $user2Id) {
-            $q->where('sender_id', $user2Id)
-              ->where('receiver_id', $user1Id);
-        });
-    }
-
-    /**
-     * Scope a query to only include unread messages.
-     */
-    public function scopeUnread($query)
-    {
-        return $query->where('is_read', false);
-    }
-
-    /**
-     * Scope a query to only include messages for a specific conversation.
-     */
-    public function scopeForConversation($query, $conversationId)
-    {
-        return $query->where('conversation_id', $conversationId);
-    }
-
-    /**
-     * Mark the message as read.
-     */
-    public function markAsRead()
-    {
-        if (!$this->is_read) {
-            $this->is_read = true;
-            $this->read_at = now();
-            $this->save();
-            
-            // Update conversation unread count
-            if ($this->conversation->user1_id == $this->receiver_id) {
-                $this->conversation->decrement('unread_count_user1');
-            } else {
-                $this->conversation->decrement('unread_count_user2');
-            }
-        }
-        
-        return $this;
-    }
-
-    /**
-     * Mark the message as delivered.
-     */
-    public function markAsDelivered()
-    {
-        if (!$this->is_delivered) {
-            $this->is_delivered = true;
-            $this->save();
-        }
-        
-        return $this;
-    }
-
-
-    /**
-     * Get the message status class for UI.
-     */
-    public function getStatusClassAttribute(): string
-    {
-        if ($this->is_read) {
-            return 'read';
-        }
-        
-        return $this->is_delivered ? 'delivered' : 'sent';
+        return $this->role === 'assistant';
     }
 }

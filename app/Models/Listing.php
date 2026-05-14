@@ -15,14 +15,20 @@ class Listing extends Model
      */
     protected $fillable = [
         'landlord_id',
+        'user_id',
         'type',
         'title',
         'description',
         'price',
+        'min_price',
+        'max_price',
         'location',
+        'latitude',
+        'longitude',
         'house_rules',
         'image',
         'status',
+        'is_active',
         'bedrooms',
         'bathrooms',
         'property_type',
@@ -67,6 +73,14 @@ class Listing extends Model
 
     /**
      * Get the user that owns the listing.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Get the landlord that owns the listing.
      */
     public function landlord(): BelongsTo
     {

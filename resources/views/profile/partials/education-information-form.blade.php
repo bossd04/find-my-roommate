@@ -1,20 +1,109 @@
-<section class="space-y-6">
-    <form method="post" action="{{ route('profile.update.details') }}" enctype="multipart/form-data" id="education-info-form">
-        @csrf
-        @method('patch')
-        <input type="hidden" name="form_section" value="education_information">
+@php
+    use App\Models\User;
+    
+    $user = auth()->user();
+    $profile = $user ? $user->roommateProfile : null;
+    
+    // Check if user has education info
+    $hasEducationInfo = $user && (
+        $user->university && 
+        $user->course && 
+        $user->year_level
+    );
+    
+    // Define required fields for completion check
+    $requiredFields = [
+        'University' => $user && $user->university,
+        'Course' => $user && $user->course,
+        'Year Level' => $user && $user->year_level,
+    ];
+    
+    $completedCount = count(array_filter($requiredFields));
+    $totalCount = count($requiredFields);
+    $completionPercentage = $totalCount > 0 ? round(($completedCount / $totalCount) * 100) : 0;
+@endphp
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- University Information -->
-            <div class="space-y-4">
+<!-- Education Status Card -->
+<section class="space-y-6">
+    <div class="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <i class="fas fa-graduation-cap text-purple-600"></i>
+                </div>
                 <div>
-                    <x-input-label for="university" :value="__('University')" />
-                    <select id="university" name="university" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required onchange="filterCoursesByUniversity(this.value)">
+                    <h3 class="font-semibold text-gray-900">Education Status</h3>
+                    <p class="text-sm text-gray-600">Add your education details for better roommate matching</p>
+                </div>
+            </div>
+            @if($hasEducationInfo)
+                <div class="flex items-center space-x-2 bg-green-100 text-green-700 px-3 py-1.5 rounded-full">
+                    <i class="fas fa-check-circle text-sm"></i>
+                    <span class="text-sm font-medium">Complete</span>
+                </div>
+            @else
+                <div class="flex items-center space-x-2 bg-orange-100 text-orange-700 px-3 py-1.5 rounded-full">
+                    <i class="fas fa-exclamation-circle text-sm"></i>
+                    <span class="text-sm font-medium">Incomplete</span>
+                </div>
+            @endif
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="mb-4">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Education Completion</span>
+                <span>{{ $completionPercentage }}%</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" 
+                     style="width: {{ $completionPercentage }}%"></div>
+            </div>
+        </div>
+        
+        <!-- Field Status -->
+        <div class="grid grid-cols-2 gap-3">
+            @foreach($requiredFields as $field => $filled)
+                <div class="flex items-center space-x-2 p-2 rounded-lg @if($filled) bg-green-50 @else bg-red-50 @endif">
+                    @if($filled)
+                        <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                        <span class="text-sm text-gray-700">{{ $field }}</span>
+                    @else
+                        <i class="fas fa-times-circle text-red-500 text-sm"></i>
+                        <span class="text-sm text-red-600 font-medium">{{ $field }}</span>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- Education Information Form -->
+    <form method="post" action="{{ route('profile.update.education') }}" enctype="multipart/form-data" class="p-6 space-y-6" id="education-form">
+        @csrf
+        <input type="hidden" name="form_section" value="education">
+
+        <!-- Success Message -->
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                    <div>
+                        <h4 class="text-sm font-medium text-green-800">{{ session('success') }}</h4>
+                    </div>
+                </div>
+            </div>
+        @endif
+        <!-- University -->
+        <div class="mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <x-input-label for="university" :value="__('University')" class="text-sm font-medium text-gray-700" />
+                    <select id="university" name="university" 
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                        required>
                         <option value="">Select University</option>
-                        <option value="Pangasinan State University" {{ old('university', $user->university) == 'Pangasinan State University' ? 'selected' : '' }}>Pangasinan State University</option>
-                        <option value="University of Pangasinan" {{ old('university', $user->university) == 'University of Pangasinan' ? 'selected' : '' }}>University of Pangasinan</option>
-                        <option value="Universidad de Dagupan" {{ old('university', $user->university) == 'Universidad de Dagupan' ? 'selected' : '' }}>Universidad de Dagupan</option>
                         <option value="Dagupan Colleges" {{ old('university', $user->university) == 'Dagupan Colleges' ? 'selected' : '' }}>Dagupan Colleges</option>
+                        <option value="Universidad de Dagupan" {{ old('university', $user->university) == 'Universidad de Dagupan' ? 'selected' : '' }}>Universidad de Dagupan</option>
                         <option value="Lyceum Northwestern University" {{ old('university', $user->university) == 'Lyceum Northwestern University' ? 'selected' : '' }}>Lyceum Northwestern University</option>
                         <option value="Saint Columban College" {{ old('university', $user->university) == 'Saint Columban College' ? 'selected' : '' }}>Saint Columban College</option>
                         <option value="University of Luzon" {{ old('university', $user->university) == 'University of Luzon' ? 'selected' : '' }}>University of Luzon</option>
@@ -23,52 +112,59 @@
                     </select>
                     <x-input-error class="mt-2" :messages="$errors->get('university')" />
                 </div>
+            </div>
+        </div>
 
-                <div id="other-university-field" class="hidden">
-                    <x-input-label for="other_university" :value="__('Specify University')" />
-                    <x-text-input id="other_university" name="other_university" type="text" class="mt-1 block w-full" 
-                        :value="old('other_university')" placeholder="Enter your university name" />
-                    <x-input-error class="mt-2" :messages="$errors->get('other_university')" />
-                </div>
+        <!-- Other University Field -->
+                    <div id="other-university-field" class="hidden space-y-2">
+                        <x-input-label for="other_university" :value="__('Specify University')" />
+                        <x-text-input id="other_university" name="other_university" type="text" 
+                            class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                            :value="old('other_university')" placeholder="Enter your university name" />
+                        <x-input-error class="mt-2" :messages="$errors->get('other_university')" />
+                    </div>
 
-                <div>
-                    <x-input-label for="course" :value="__('Course/Major')" />
-                    <select id="course" name="course" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required onchange="updateDepartmentOptions()">
-                        <option value="">Select Course</option>
-                        
-                        <!-- PSU Courses -->
-                        <optgroup label="Pangasinan State University" data-university="Pangasinan State University">
-                            <option value="Bachelor of Science in Computer Science" {{ old('course', $user->course) == 'Bachelor of Science in Computer Science' ? 'selected' : '' }}>Bachelor of Science in Computer Science</option>
-                            <option value="Bachelor of Science in Information Technology" {{ old('course', $user->course) == 'Bachelor of Science in Information Technology' ? 'selected' : '' }}>Bachelor of Science in Information Technology</option>
-                            <option value="Bachelor of Science in Civil Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Civil Engineering' ? 'selected' : '' }}>Bachelor of Science in Civil Engineering</option>
-                            <option value="Bachelor of Science in Electrical Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Electrical Engineering' ? 'selected' : '' }}>Bachelor of Science in Electrical Engineering</option>
-                            <option value="Bachelor of Science in Mechanical Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Mechanical Engineering' ? 'selected' : '' }}>Bachelor of Science in Mechanical Engineering</option>
-                            <option value="Bachelor of Science in Accountancy" {{ old('course', $user->course) == 'Bachelor of Science in Accountancy' ? 'selected' : '' }}>Bachelor of Science in Accountancy</option>
-                            <option value="Bachelor of Science in Business Administration" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration' ? 'selected' : '' }}>Bachelor of Science in Business Administration</option>
-                            <option value="Bachelor of Science in Business Administration Major in Marketing" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration Major in Marketing' ? 'selected' : '' }}>Bachelor of Science in Business Administration Major in Marketing</option>
-                            <option value="Bachelor of Science in Business Administration Major in Human Resource" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration Major in Human Resource' ? 'selected' : '' }}>Bachelor of Science in Business Administration Major in Human Resource</option>
-                            <option value="Bachelor of Science in Hospitality Management" {{ old('course', $user->course) == 'Bachelor of Science in Hospitality Management' ? 'selected' : '' }}>Bachelor of Science in Hospitality Management</option>
-                            <option value="Bachelor of Arts in English" {{ old('course', $user->course) == 'Bachelor of Arts in English' ? 'selected' : '' }}>Bachelor of Arts in English</option>
-                            <option value="Bachelor of Arts in Filipino" {{ old('course', $user->course) == 'Bachelor of Arts in Filipino' ? 'selected' : '' }}>Bachelor of Arts in Filipino</option>
-                            <option value="Bachelor of Secondary Education" {{ old('course', $user->course) == 'Bachelor of Secondary Education' ? 'selected' : '' }}>Bachelor of Secondary Education</option>
-                            <option value="Bachelor of Secondary Education Major in English" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in English' ? 'selected' : '' }}>Bachelor of Secondary Education Major in English</option>
-                            <option value="Bachelor of Secondary Education Major in Mathematics" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in Mathematics' ? 'selected' : '' }}>Bachelor of Secondary Education Major in Mathematics</option>
-                            <option value="Bachelor of Secondary Education Major in Science" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in Science' ? 'selected' : '' }}>Bachelor of Secondary Education Major in Science</option>
-                            <option value="Bachelor of Elementary Education" {{ old('course', $user->course) == 'Bachelor of Elementary Education' ? 'selected' : '' }}>Bachelor of Elementary Education</option>
-                            <option value="Bachelor of Science in Nursing" {{ old('course', $user->course) == 'Bachelor of Science in Nursing' ? 'selected' : '' }}>Bachelor of Science in Nursing</option>
-                            <option value="Bachelor of Science in Pharmacy" {{ old('course', $user->course) == 'Bachelor of Science in Pharmacy' ? 'selected' : '' }}>Bachelor of Science in Pharmacy</option>
-                            <option value="Bachelor of Science in Biology" {{ old('course', $user->course) == 'Bachelor of Science in Biology' ? 'selected' : '' }}>Bachelor of Science in Biology</option>
-                            <option value="Bachelor of Science in Mathematics" {{ old('course', $user->course) == 'Bachelor of Science in Mathematics' ? 'selected' : '' }}>Bachelor of Science in Mathematics</option>
-                            <option value="Bachelor of Science in Psychology" {{ old('course', $user->course) == 'Bachelor of Science in Psychology' ? 'selected' : '' }}>Bachelor of Science in Psychology</option>
-                            <option value="Bachelor of Science in Chemistry" {{ old('course', $user->course) == 'Bachelor of Science in Chemistry' ? 'selected' : '' }}>Bachelor of Science in Chemistry</option>
-                            <option value="Bachelor of Science in Physics" {{ old('course', $user->course) == 'Bachelor of Science in Physics' ? 'selected' : '' }}>Bachelor of Science in Physics</option>
-                            <option value="Bachelor of Science in Statistics" {{ old('course', $user->course) == 'Bachelor of Science in Statistics' ? 'selected' : '' }}>Bachelor of Science in Statistics</option>
-                            <option value="Bachelor of Arts in Economics" {{ old('course', $user->course) == 'Bachelor of Arts in Economics' ? 'selected' : '' }}>Bachelor of Arts in Economics</option>
-                            <option value="Bachelor of Arts in Political Science" {{ old('course', $user->course) == 'Bachelor of Arts in Political Science' ? 'selected' : '' }}>Bachelor of Arts in Political Science</option>
-                            <option value="Bachelor of Arts in Sociology" {{ old('course', $user->course) == 'Bachelor of Arts in Sociology' ? 'selected' : '' }}>Bachelor of Arts in Sociology</option>
-                            <option value="Bachelor of Science in Agriculture" {{ old('course', $user->course) == 'Bachelor of Science in Agriculture' ? 'selected' : '' }}>Bachelor of Science in Agriculture</option>
-                            <option value="Bachelor of Science in Agricultural Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Agricultural Engineering' ? 'selected' : '' }}>Bachelor of Science in Agricultural Engineering</option>
-                            <option value="Bachelor of Science in Food Technology" {{ old('course', $user->course) == 'Bachelor of Science in Food Technology' ? 'selected' : '' }}>Bachelor of Science in Food Technology</option>
+                    <!-- Course/Major -->
+                    <div class="space-y-2">
+                        <x-input-label for="course" :value="__('Course/Major')" class="text-sm font-medium text-gray-700" />
+                        <select id="course" name="course" 
+                            class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors" 
+                            required>
+                            <option value="">Select Course</option>
+                            
+                            <!-- PSU Courses -->
+                            <optgroup label="Pangasinan State University" data-university="Pangasinan State University">
+                                <option value="Bachelor of Science in Computer Science" {{ old('course', $user->course) == 'Bachelor of Science in Computer Science' ? 'selected' : '' }}>Bachelor of Science in Computer Science</option>
+                                <option value="Bachelor of Science in Information Technology" {{ old('course', $user->course) == 'Bachelor of Science in Information Technology' ? 'selected' : '' }}>Bachelor of Science in Information Technology</option>
+                                <option value="Bachelor of Science in Civil Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Civil Engineering' ? 'selected' : '' }}>Bachelor of Science in Civil Engineering</option>
+                                <option value="Bachelor of Science in Electrical Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Electrical Engineering' ? 'selected' : '' }}>Bachelor of Science in Electrical Engineering</option>
+                                <option value="Bachelor of Science in Mechanical Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Mechanical Engineering' ? 'selected' : '' }}>Bachelor of Science in Mechanical Engineering</option>
+                                <option value="Bachelor of Science in Accountancy" {{ old('course', $user->course) == 'Bachelor of Science in Accountancy' ? 'selected' : '' }}>Bachelor of Science in Accountancy</option>
+                                <option value="Bachelor of Science in Business Administration" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration' ? 'selected' : '' }}>Bachelor of Science in Business Administration</option>
+                                <option value="Bachelor of Science in Business Administration Major in Marketing" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration Major in Marketing' ? 'selected' : '' }}>Bachelor of Science in Business Administration Major in Marketing</option>
+                                <option value="Bachelor of Science in Business Administration Major in Human Resource" {{ old('course', $user->course) == 'Bachelor of Science in Business Administration Major in Human Resource' ? 'selected' : '' }}>Bachelor of Science in Business Administration Major in Human Resource</option>
+                                <option value="Bachelor of Science in Hospitality Management" {{ old('course', $user->course) == 'Bachelor of Science in Hospitality Management' ? 'selected' : '' }}>Bachelor of Science in Hospitality Management</option>
+                                <option value="Bachelor of Arts in English" {{ old('course', $user->course) == 'Bachelor of Arts in English' ? 'selected' : '' }}>Bachelor of Arts in English</option>
+                                <option value="Bachelor of Arts in Filipino" {{ old('course', $user->course) == 'Bachelor of Arts in Filipino' ? 'selected' : '' }}>Bachelor of Arts in Filipino</option>
+                                <option value="Bachelor of Secondary Education" {{ old('course', $user->course) == 'Bachelor of Secondary Education' ? 'selected' : '' }}>Bachelor of Secondary Education</option>
+                                <option value="Bachelor of Secondary Education Major in English" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in English' ? 'selected' : '' }}>Bachelor of Secondary Education Major in English</option>
+                                <option value="Bachelor of Secondary Education Major in Mathematics" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in Mathematics' ? 'selected' : '' }}>Bachelor of Secondary Education Major in Mathematics</option>
+                                <option value="Bachelor of Secondary Education Major in Science" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in Science' ? 'selected' : '' }}>Bachelor of Secondary Education Major in Science</option>
+                                <option value="Bachelor of Elementary Education" {{ old('course', $user->course) == 'Bachelor of Elementary Education' ? 'selected' : '' }}>Bachelor of Elementary Education</option>
+                                <option value="Bachelor of Science in Nursing" {{ old('course', $user->course) == 'Bachelor of Science in Nursing' ? 'selected' : '' }}>Bachelor of Science in Nursing</option>
+                                <option value="Bachelor of Science in Pharmacy" {{ old('course', $user->course) == 'Bachelor of Science in Pharmacy' ? 'selected' : '' }}>Bachelor of Science in Pharmacy</option>
+                                <option value="Bachelor of Science in Biology" {{ old('course', $user->course) == 'Bachelor of Science in Biology' ? 'selected' : '' }}>Bachelor of Science in Biology</option>
+                                <option value="Bachelor of Science in Mathematics" {{ old('course', $user->course) == 'Bachelor of Science in Mathematics' ? 'selected' : '' }}>Bachelor of Science in Mathematics</option>
+                                <option value="Bachelor of Science in Psychology" {{ old('course', $user->course) == 'Bachelor of Science in Psychology' ? 'selected' : '' }}>Bachelor of Science in Psychology</option>
+                                <option value="Bachelor of Science in Chemistry" {{ old('course', $user->course) == 'Bachelor of Science in Chemistry' ? 'selected' : '' }}>Bachelor of Science in Chemistry</option>
+                                <option value="Bachelor of Science in Physics" {{ old('course', $user->course) == 'Bachelor of Science in Physics' ? 'selected' : '' }}>Bachelor of Science in Physics</option>
+                                <option value="Bachelor of Science in Statistics" {{ old('course', $user->course) == 'Bachelor of Science in Statistics' ? 'selected' : '' }}>Bachelor of Science in Statistics</option>
+                                <option value="Bachelor of Arts in Economics" {{ old('course', $user->course) == 'Bachelor of Arts in Economics' ? 'selected' : '' }}>Bachelor of Arts in Economics</option>
+                                <option value="Bachelor of Arts in Political Science" {{ old('course', $user->course) == 'Bachelor of Arts in Political Science' ? 'selected' : '' }}>Bachelor of Arts in Political Science</option>
+                                <option value="Bachelor of Arts in Sociology" {{ old('course', $user->course) == 'Bachelor of Arts in Sociology' ? 'selected' : '' }}>Bachelor of Arts in Sociology</option>
+                                <option value="Bachelor of Science in Agriculture" {{ old('course', $user->course) == 'Bachelor of Science in Agriculture' ? 'selected' : '' }}>Bachelor of Science in Agriculture</option>
+                                <option value="Bachelor of Science in Agricultural Engineering" {{ old('course', $user->course) == 'Bachelor of Science in Agricultural Engineering' ? 'selected' : '' }}>Bachelor of Science in Agricultural Engineering</option>
+                                <option value="Bachelor of Science in Food Technology" {{ old('course', $user->course) == 'Bachelor of Science in Food Technology' ? 'selected' : '' }}>Bachelor of Science in Food Technology</option>
                             <option value="Bachelor of Science in Fisheries" {{ old('course', $user->course) == 'Bachelor of Science in Fisheries' ? 'selected' : '' }}>Bachelor of Science in Fisheries</option>
                             <option value="Bachelor of Science in Forestry" {{ old('course', $user->course) == 'Bachelor of Science in Forestry' ? 'selected' : '' }}>Bachelor of Science in Forestry</option>
                             <option value="Bachelor of Science in Environmental Science" {{ old('course', $user->course) == 'Bachelor of Science in Environmental Science' ? 'selected' : '' }}>Bachelor of Science in Environmental Science</option>
@@ -98,6 +194,7 @@
                             <option value="Bachelor of Secondary Education Major in English" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in English' ? 'selected' : '' }}>Bachelor of Secondary Education Major in English</option>
                             <option value="Bachelor of Secondary Education Major in Mathematics" {{ old('course', $user->course) == 'Bachelor of Secondary Education Major in Mathematics' ? 'selected' : '' }}>Bachelor of Secondary Education Major in Mathematics</option>
                             <option value="Bachelor of Elementary Education" {{ old('course', $user->course) == 'Bachelor of Elementary Education' ? 'selected' : '' }}>Bachelor of Elementary Education</option>
+                            <option value="Bachelor of Elementary Education Major in Early Childhood Education" {{ old('course', $user->course) == 'Bachelor of Elementary Education Major in Early Childhood Education' ? 'selected' : '' }}>Bachelor of Elementary Education Major in Early Childhood Education</option>
                             <option value="Bachelor of Science in Nursing" {{ old('course', $user->course) == 'Bachelor of Science in Nursing' ? 'selected' : '' }}>Bachelor of Science in Nursing</option>
                             <option value="Bachelor of Science in Medical Technology" {{ old('course', $user->course) == 'Bachelor of Science in Medical Technology' ? 'selected' : '' }}>Bachelor of Science in Medical Technology</option>
                             <option value="Bachelor of Science in Pharmacy" {{ old('course', $user->course) == 'Bachelor of Science in Pharmacy' ? 'selected' : '' }}>Bachelor of Science in Pharmacy</option>
@@ -108,7 +205,7 @@
                             <option value="Bachelor of Laws" {{ old('course', $user->course) == 'Bachelor of Laws' ? 'selected' : '' }}>Bachelor of Laws</option>
                             <option value="Bachelor of Arts in International Studies" {{ old('course', $user->course) == 'Bachelor of Arts in International Studies' ? 'selected' : '' }}>Bachelor of Arts in International Studies</option>
                         </optgroup>
-
+                        
                         <!-- Universidad de Dagupan Courses -->
                         <optgroup label="Universidad de Dagupan" data-university="Universidad de Dagupan">
                             <option value="Bachelor of Science in Computer Science" {{ old('course', $user->course) == 'Bachelor of Science in Computer Science' ? 'selected' : '' }}>Bachelor of Science in Computer Science</option>
@@ -154,7 +251,7 @@
                             <option value="Bachelor of Science in Tourism Management" {{ old('course', $user->course) == 'Bachelor of Science in Tourism Management' ? 'selected' : '' }}>Bachelor of Science in Tourism Management</option>
                         </optgroup>
 
-                        <!-- Lyceum Northwestern Courses -->
+                        <!-- Lyceum Northwestern University Courses -->
                         <optgroup label="Lyceum Northwestern University" data-university="Lyceum Northwestern University">
                             <option value="Bachelor of Science in Computer Science" {{ old('course', $user->course) == 'Bachelor of Science in Computer Science' ? 'selected' : '' }}>Bachelor of Science in Computer Science</option>
                             <option value="Bachelor of Science in Information Technology" {{ old('course', $user->course) == 'Bachelor of Science in Information Technology' ? 'selected' : '' }}>Bachelor of Science in Information Technology</option>
@@ -241,7 +338,7 @@
         </div>
 
         <div class="mt-8">
-            <button type="button" onclick="submitEducationForm()" class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors" id="education-info-submit">
+            <button type="button" onclick="submitEducationForm(this)" id="education-submit-btn" class="inline-flex items-center px-6 py-3 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
@@ -252,191 +349,16 @@
 </section>
 
 <script>
-function submitEducationForm() {
-    console.log('Submitting education form...');
-    
-    // Show loading state
-    const submitBtn = document.getElementById('education-info-submit');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg> Saving...';
-    submitBtn.disabled = true;
-    
-    // Create form data manually
-    const form = document.getElementById('education-info-form');
-    const formData = new FormData(form);
-    
-    // Add form section
-    formData.append('form_section', 'education_information');
-    
-    // Log form data for debugging
-    console.log('Form data being submitted:');
-    for (let [key, value] of formData.entries()) {
-        console.log(key + ': ' + value);
-    }
-    
-    // Submit via fetch to ensure proper handling
-    fetch('/profile/details', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        return response.json();
-    })
-    .then(data => {
-        console.log('Response data:', data);
-        
-        if (data.success) {
-            // Show success state
-            submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Saved!';
-            submitBtn.classList.remove('bg-blue-600');
-            submitBtn.classList.add('bg-green-600');
-            
-            // Show success alert with completion status
-            alert('✅ Education information updated successfully!\n\nYour profile completion status has been updated.');
-            
-            // Check if all required sections are complete
-            setTimeout(() => {
-                checkProfileCompletion();
-            }, 500);
-            
-            // Reload page after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
+const universitySelect = document.getElementById('university');
+const otherUniversityField = document.getElementById('other-university-field');
+
+if (universitySelect && otherUniversityField) {
+    universitySelect.addEventListener('change', function() {
+        if (this.value === 'Other') {
+            otherUniversityField.classList.remove('hidden');
         } else {
-            // Show error message
-            submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Error';
-            submitBtn.classList.remove('bg-blue-600');
-            submitBtn.classList.add('bg-red-600');
-            
-            // Show error alert with details
-            alert('❌ Error: ' + (data.message || 'Unknown error occurred') + '\n\nPlease try again or contact support if the issue persists.');
-            
-            // Reset button after delay
-            setTimeout(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('bg-red-600');
-                submitBtn.classList.add('bg-blue-600');
-            }, 3000);
-        }
-    })
-    .catch(error => {
-        console.error('Submission error:', error);
-        
-        // Show error message
-        submitBtn.innerHTML = '<svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Error';
-        submitBtn.classList.remove('bg-blue-600');
-        submitBtn.classList.add('bg-red-600');
-        
-        alert('❌ Network error occurred while submitting the form.\n\nPlease check your connection and try again.');
-        
-        // Reset button after delay
-        setTimeout(() => {
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('bg-red-600');
-            submitBtn.classList.add('bg-blue-600');
-        }, 3000);
-    });
-}
-
-// Function to check profile completion status
-function checkProfileCompletion() {
-    fetch('/api/profile/completion', {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Profile completion status:', data);
-        
-        // Update completion indicators if they exist
-        const completionIndicator = document.getElementById('profile-completion-status');
-        if (completionIndicator) {
-            if (data.complete) {
-                completionIndicator.innerHTML = '<span class="text-green-600">✅ Profile Complete</span>';
-                completionIndicator.classList.remove('text-yellow-600');
-                completionIndicator.classList.add('text-green-600');
-            } else {
-                completionIndicator.innerHTML = '<span class="text-yellow-600">⚠️ Profile Incomplete</span>';
-                completionIndicator.classList.remove('text-green-600');
-                completionIndicator.classList.add('text-yellow-600');
-            }
-        }
-    })
-    .catch(error => {
-        console.log('Could not check profile completion:', error);
-    });
-}
-
-// ✅ SHOW "OTHER UNIVERSITY"
-function toggleOtherUniversity(value) {
-    const otherField = document.getElementById('other-university-field');
-    if (value === 'Other') {
-        otherField.classList.remove('hidden');
-    } else {
-        otherField.classList.add('hidden');
-    }
-}
-
-// ✅ FILTER COURSES BY UNIVERSITY
-function filterCoursesByUniversity(university) {
-    const courseSelect = document.getElementById('course');
-    const optgroups = courseSelect.querySelectorAll('optgroup');
-
-    courseSelect.value = ""; // reset selection
-
-    optgroups.forEach(group => {
-        if (group.getAttribute('data-university') === university) {
-            group.style.display = 'block';
-        } else {
-            group.style.display = 'none';
+            otherUniversityField.classList.add('hidden');
         }
     });
-
-    // Show all if no university selected
-    if (!university) {
-        optgroups.forEach(group => group.style.display = 'block');
-    }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== EDUCATION FORM INIT ===');
-    
-    const universitySelect = document.getElementById('university');
-    const courseSelect = document.getElementById('course');
-
-    console.log('Elements found:', {
-        university: !!universitySelect,
-        course: !!courseSelect
-    });
-
-    // ✅ UNIVERSITY CHANGE
-    if (universitySelect) {
-        universitySelect.addEventListener('change', function() {
-            console.log('University changed to:', this.value);
-            toggleOtherUniversity(this.value);
-            filterCoursesByUniversity(this.value);
-        });
-    }
-
-    // ✅ LOAD DEFAULT STATE (IMPORTANT for edit mode)
-    if (universitySelect) {
-        toggleOtherUniversity(universitySelect.value);
-        filterCoursesByUniversity(universitySelect.value);
-    }
-    
-    // Check profile completion on load
-    checkProfileCompletion();
-    
-    console.log('=== EDUCATION FORM INIT COMPLETE ===');
-});
 </script>

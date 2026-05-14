@@ -1,0 +1,418 @@
+/* Global Background Theme - Blue LED Bedroom Theme */
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: url('/images/global-theme-bg.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-attachment: fixed !important;
+    background-color: transparent !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Remove overlay on specific pages - force hide */
+body.no-overlay::before {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Dark overlay for better text readability */
+body::before {
+    content: '' !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.4) !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+    transition: background 0.3s ease !important;
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    color: #e5e7eb !important;
+}
+
+body.dark-mode::before {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Dark mode text colors */
+body.dark-mode .text-gray-900,
+body.dark-mode .text-gray-800,
+body.dark-mode .text-gray-700 {
+    color: #e5e7eb !important;
+}
+
+body.dark-mode .text-gray-600,
+body.dark-mode .text-gray-500 {
+    color: #d1d5db !important;
+}
+
+body.dark-mode .text-gray-400,
+body.dark-mode .text-gray-300 {
+    color: #9ca3af !important;
+}
+
+/* Dark mode backgrounds */
+body.dark-mode .bg-white,
+body.dark-mode .bg-gray-50,
+body.dark-mode .bg-gray-100 {
+    background-color: rgba(31, 41, 55, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
+}
+
+body.dark-mode .bg-gray-200 {
+    background-color: rgba(55, 65, 81, 0.95) !important;
+    color: #e5e7eb !important;
+}
+
+/* Dark mode navigation */
+body.dark-mode .nav,
+body.dark-mode nav,
+body.dark-mode header {
+    background-color: rgba(17, 24, 39, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
+}
+
+body.dark-mode .nav .text-white,
+body.dark-mode nav .text-white,
+body.dark-mode header .text-white {
+    color: #e5e7eb !important;
+}
+
+/* Dark mode sidebar */
+body.dark-mode .sidebar,
+body.dark-mode .navigation-sidebar {
+    background-color: rgba(31, 41, 55, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
+}
+
+/* Dark mode cards */
+body.dark-mode .card,
+body.dark-mode .bg-white.rounded-lg,
+body.dark-mode .bg-white.rounded-xl,
+body.dark-mode .bg-white.rounded-2xl {
+    background-color: rgba(31, 41, 55, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
+}
+
+/* Dark mode forms */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: rgba(55, 65, 81, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #9ca3af !important;
+}
+
+/* Dark mode mobile navigation */
+body.dark-mode .mobile-nav,
+body.dark-mode .bottom-nav {
+    background-color: rgba(17, 24, 39, 0.95) !important;
+    color: #e5e7eb !important;
+    border-color: rgba(75, 85, 99, 0.3) !important;
+}
+
+/* Dark mode hero sections */
+body.dark-mode .hero-section,
+body.dark-mode .gradient-hero {
+    background: linear-gradient(135deg, rgba(31, 41, 55, 0.9) 0%, rgba(55, 65, 81, 0.9) 50%, rgba(75, 85, 99, 0.9) 100%) !important;
+}
+
+/* Dark mode buttons */
+body.dark-mode .bg-indigo-600,
+body.dark-mode .bg-blue-600 {
+    background-color: rgba(79, 70, 229, 0.9) !important;
+}
+
+body.dark-mode .bg-indigo-500,
+body.dark-mode .bg-blue-500 {
+    background-color: rgba(99, 102, 241, 0.9) !important;
+}
+
+body.dark-mode button {
+    color: #e5e7eb !important;
+}
+
+/* Dark mode links */
+body.dark-mode a {
+    color: #818cf8 !important;
+}
+
+body.dark-mode a:hover {
+    color: #a5b4fc !important;
+}
+
+/* Dark mode borders */
+body.dark-mode .border,
+body.dark-mode .border-gray-200,
+body.dark-mode .border-gray-300 {
+    border-color: rgba(75, 85, 99, 0.5) !important;
+}
+
+/* Notification dropdown z-index fix - MUST BE ABOVE EVERYTHING */
+#notificationsDropdown {
+    z-index: 999999 !important;
+    position: fixed !important;
+    background: white !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid #e5e7eb !important;
+}
+
+/* Ensure all dropdowns appear above content */
+.dropdown, .absolute.z-50, [class*="z-"] {
+    z-index: 999999 !important;
+}
+
+/* Force notification dropdown to be above background overlays */
+body::before {
+    z-index: -1 !important;
+}
+
+/* Navigation bar z-index */
+nav, header, .navigation {
+    z-index: 1000 !important;
+    position: relative !important;
+}
+
+/* Notification button container */
+nav .relative {
+    z-index: 1001 !important;
+    position: relative !important;
+}
+
+/* Dark mode notification dropdown */
+body.dark-mode #notificationsDropdown {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #e5e7eb !important;
+}
+
+/* Notification button color effects */
+#notificationButton {
+    transition: all 0.3s ease !important;
+}
+
+#notificationButton:hover {
+    transform: scale(1.1) !important;
+}
+
+#notificationButton:active {
+    transform: scale(1.05) !important;
+}
+
+/* Notification icon color transitions */
+#notificationIcon {
+    transition: color 0.3s ease, transform 0.3s ease !important;
+}
+
+#notificationButton:hover #notificationIcon {
+    transform: rotate(15deg) !important;
+}
+
+/* Enhanced notification badge animation */
+#notificationButton .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+@keyframes notificationBellRing {
+    0%, 100% { transform: rotate(0deg); }
+    10%, 30% { transform: rotate(-10deg); }
+    20%, 40% { transform: rotate(10deg); }
+    50% { transform: rotate(0deg); }
+}
+
+#notificationButton.clicked #notificationIcon {
+    animation: notificationBellRing 0.5s ease-in-out !important;
+}
+
+/* Notification card color effects */
+[id^="notification-card-"] {
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+}
+
+[id^="notification-card-"]:hover {
+    background-color: #f9fafb !important;
+    transform: translateX(4px) !important;
+}
+
+[id^="notification-card-"]:active {
+    background-color: #fef3c7 !important;
+    transform: translateX(2px) scale(0.98) !important;
+}
+
+/* Notification card icon transitions */
+[id^="notification-card-"] .w-8.h-8 {
+    transition: all 0.3s ease !important;
+}
+
+[id^="notification-card-"]:hover .w-8.h-8 {
+    transform: scale(1.1) !important;
+}
+
+/* Unread indicator transitions */
+[id^="notification-card-"] .bg-blue-500 {
+    transition: all 0.3s ease !important;
+}
+
+[id^="notification-card-"]:hover .bg-blue-500 {
+    transform: scale(1.2) !important;
+}
+
+/* Clicked notification card state */
+[id^="notification-card-"].clicked {
+    background-color: #fef3c7 !important;
+    border-color: #f59e0b !important;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06) !important;
+}
+
+[id^="notification-card-"].clicked .w-8.h-8 {
+    background-color: #f59e0b !important;
+}
+
+[id^="notification-card-"].clicked .w-8.h-8 svg {
+    color: white !important;
+}
+
+[id^="notification-card-"].clicked .bg-blue-500 {
+    background-color: #10b981 !important;
+}
+
+/* Ensure main content is above background */
+main, .main-content, .content-area {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Override any white backgrounds from Laravel/Bootstrap */
+.bg-white, 
+.bg-gray-50, 
+.bg-gray-100,
+body.bg-white,
+body.bg-gray-50,
+body.bg-gray-100 {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Keep important elements with full opacity */
+.nav, nav, header {
+    background-color: rgba(30, 58, 138, 0.95) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Sidebar styling */
+.sidebar, .navigation-sidebar {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    backdrop-filter: blur(15px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Card styling */
+.card, .bg-white.rounded-lg, .bg-white.rounded-xl, .bg-white.rounded-2xl {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Form inputs */
+input, textarea, select {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* Mobile bottom navigation */
+.mobile-nav, .bottom-nav {
+    background-color: rgba(30, 58, 138, 0.95) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    backdrop-filter: blur(15px) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Hero sections with gradient */
+.hero-section, .gradient-hero {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(139, 92, 246, 0.9) 50%, rgba(236, 72, 153, 0.9) 100%) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* Ensure text remains readable */
+.text-white, .text-gray-100, .text-blue-100 {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    body::before {
+        background: rgba(0, 0, 0, 0.5) !important;
+    }
+    
+    .bg-white, 
+    .bg-gray-50, 
+    .bg-gray-100 {
+        background-color: rgba(255, 255, 255, 0.92) !important;
+    }
+}
+
+/* High contrast for accessibility */
+@media (prefers-contrast: high) {
+    body::before {
+        background: rgba(0, 0, 0, 0.6) !important;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .bg-white, 
+    .bg-gray-50, 
+    .bg-gray-100 {
+        background-color: rgba(31, 41, 55, 0.9) !important;
+        color: rgba(243, 244, 246, 0.95) !important;
+    }
+}
+
+/* Utility Classes */
+.thin-scrollbar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.5);
+    border-radius: 10px;
+}
+
+.thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(59, 130, 246, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+body {
+    overflow-x: hidden;
+    width: 100%;
+}
