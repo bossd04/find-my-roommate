@@ -12,21 +12,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('listings', function (Blueprint $table) {
-            // First add the column as nullable
-            $table->foreignId('user_id')->after('id')->nullable()->constrained()->onDelete('cascade');
-            
-            // Set a default user ID for existing records (e.g., first admin user)
-            $defaultUserId = \App\Models\User::where('is_admin', true)->value('id') ?? 1;
-            
-            // Update existing records with the default user ID
-            if (Schema::hasColumn('listings', 'user_id')) {
+        if (!Schema::hasColumn('listings', 'user_id')) {
+            Schema::table('listings', function (Blueprint $table) {
+                // First add the column as nullable
+                $table->foreignId('user_id')->after('id')->nullable()->constrained()->onDelete('cascade');
+                
+                // Set a default user ID for existing records (e.g., first admin user)
+                $defaultUserId = \App\Models\User::where('is_admin', true)->value('id') ?? 1;
+                
+                // Update existing records with the default user ID
                 \DB::table('listings')->update(['user_id' => $defaultUserId]);
                 
                 // Now make the column required
                 $table->foreignId('user_id')->nullable(false)->change();
-            }
-        });
+            });
+        }
     }
 
     /**
