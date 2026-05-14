@@ -16,6 +16,9 @@ COPY . .
 
 RUN composer install
 
+# Delete any local caches that might have been copied
+RUN rm -f bootstrap/cache/*.php
+
 # Build assets
 RUN npm install
 RUN npm run build
