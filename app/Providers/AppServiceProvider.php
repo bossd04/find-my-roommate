@@ -35,11 +35,16 @@ class SettingsServiceProvider extends ServiceProvider
             return;
         }
 
-        if (!Schema::hasTable('settings')) {
-            return;
-        }
-
         try {
+            // Ensure we are not using sqlite if we are in production
+            if (config('app.env') === 'production' && config('database.default') === 'sqlite') {
+                return;
+            }
+
+            if (!Schema::hasTable('settings')) {
+                return;
+            }
+
             $settings = \App\Models\Setting::all();
             foreach ($settings as $setting) {
                 config([$setting->key => $setting->value]);
