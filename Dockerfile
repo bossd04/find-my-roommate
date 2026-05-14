@@ -23,8 +23,10 @@ RUN npm run build
 RUN php artisan key:generate || true
 RUN php artisan config:clear || true
 RUN php artisan cache:clear || true
+RUN php artisan view:clear || true
+RUN php artisan route:clear || true
 # Fix permissions
-RUN chmod -R 775 storage bootstrap/cache
+RUN chmod -R 775 storage bootstrap/cache public/build
 
 EXPOSE 10000
 
