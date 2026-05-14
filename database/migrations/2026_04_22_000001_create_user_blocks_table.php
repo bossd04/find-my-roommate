@@ -11,17 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_blocks', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('blocker_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('blocked_id')->constrained('users')->onDelete('cascade');
-            $table->text('reason')->nullable();
-            $table->timestamp('expires_at')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('user_blocks')) {
+            Schema::create('user_blocks', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('blocker_id')->constrained('users')->onDelete('cascade');
+                $table->foreignId('blocked_id')->constrained('users')->onDelete('cascade');
+                $table->text('reason')->nullable();
+                $table->timestamp('expires_at')->nullable();
+                $table->timestamps();
 
-            $table->index(['blocker_id', 'blocked_id']);
-            $table->index('expires_at');
-        });
+                $table->index(['blocker_id', 'blocked_id']);
+                $table->index('expires_at');
+            });
+        }
     }
 
     /**
