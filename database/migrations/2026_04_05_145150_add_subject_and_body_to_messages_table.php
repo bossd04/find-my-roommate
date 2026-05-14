@@ -12,8 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('messages', function (Blueprint $table) {
-            $table->string('subject')->nullable()->after('receiver_id');
-            $table->text('body')->nullable()->after('subject');
+            if (!Schema::hasColumn('messages', 'subject')) {
+                if (Schema::hasColumn('messages', 'receiver_id')) {
+                    $table->string('subject')->nullable()->after('receiver_id');
+                } else {
+                    $table->string('subject')->nullable();
+                }
+            }
+            
+            if (!Schema::hasColumn('messages', 'body')) {
+                if (Schema::hasColumn('messages', 'subject')) {
+                    $table->text('body')->nullable()->after('subject');
+                } else {
+                    $table->text('body')->nullable();
+                }
+            }
         });
     }
 
