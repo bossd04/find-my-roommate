@@ -1,8 +1,8 @@
 FROM php:8.2-cli
 
 RUN apt-get update && apt-get install -y \
-    git unzip curl libzip-dev zip \
-    && docker-php-ext-install zip
+    git unzip curl libzip-dev zip libpng-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install zip pdo_mysql mbstring exif pcntl bcmath gd
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -20,4 +20,4 @@ RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 10000
 
-CMD php -S 0.0.0.0:10000 -t public
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
