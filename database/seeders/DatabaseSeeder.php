@@ -39,6 +39,7 @@ class DatabaseSeeder extends Seeder
 
         // Seed activity logs
         $this->call(ActivityLogSeeder::class);
+        $this->call(SuperAdminSeeder::class);
 
         if (Department::query()->count() === 0) {
             $this->call(DepartmentSeeder::class);
